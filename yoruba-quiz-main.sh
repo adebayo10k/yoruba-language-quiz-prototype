@@ -19,9 +19,6 @@
 
 	#######################################################################
 
-	## REMEMBER TO ADD THE PATH TO THIS GIT PROJECT TO SYNC EXCLUDES!!! 
-
-	#######################################################################
 
 function main 
 {
@@ -52,12 +49,19 @@ function main
 	all_filepath_regex='^(/?[A-Za-z0-9._~:@-]+)+(/)?$' # both relative and absolute file path
 	actual_host=$(hostname)
 	project_root_dir="$(dirname $0)"
-	echo "project root directory is now set to: $project_root_dir"
+	#echo "project root directory is now set to: $project_root_dir"
 
 	# JSON quiz data file locations
 	quiz_data_week_01="${project_root_dir}/../app-data/review-class-week-01/quiz-week-01.json"
 	quiz_data_week_02="${project_root_dir}/../app-data/review-class-week-02/quiz-week-02.json"
 	quiz_data_week_03="${project_root_dir}/../app-data/review-class-week-03/quiz-week-03.json"
+ 	quiz_data_week_04="${project_root_dir}/../app-data/review-class-week-04/quiz-week-04.json"
+ 	quiz_data_week_05="${project_root_dir}/../app-data/review-class-week-05/quiz-week-05.json"
+  quiz_data_week_06="${project_root_dir}/../app-data/review-class-week-06/quiz-week-06.json"
+	quiz_data_week_07="${project_root_dir}/../app-data/review-class-week-07/quiz-week-07.json"
+	quiz_data_week_08="${project_root_dir}/../app-data/review-class-week-08/quiz-week-08.json"
+ 	quiz_data_week_09="${project_root_dir}/../app-data/review-class-week-09/quiz-week-09.json"
+ 	quiz_data_week_10="${project_root_dir}/../app-data/review-class-week-10/quiz-week-10.json"
 
 	num_of_players=1 # default value for quizzes to clear screen after every answer 
 	num_of_responses_to_display="$num_of_players"
@@ -70,10 +74,6 @@ function main
 	declare -a current_yoruba_phrases_list=()
 	declare -A current_yoruba_translations
 
-#Á À É È Ẹ Í Ì Ń Ǹ Ḿ M̀ Ó Ò Ọ Ú Ù Ṣ
-#á à é è ẹ í ì ń ǹ ḿ m̀ m̄ ó ò ọ ú ù ṣ 
-
-
 	###############################################################################################
 
 	check_program_requirements
@@ -84,6 +84,7 @@ function main
 	###############################################################################################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	###############################################################################################
+
 	# keep running quizzes until user says stop
 	while true
 	do
@@ -91,12 +92,13 @@ function main
 		get_user_quiz_choice
 
 		get_user_player_count_choice
+    
+    # we now have all configuration instructions that we needed from user
 
-		# call functions to assemble data structures for the specific week quiz
+		# calls included functions to assemble data structures for the specific week quiz
 		create_user_quiz_choice # TODO: rename to structure_chosen_quiz_data
 
-		#>>>> included functions run here<<<<<<<<
-		
+    # returns here when the chosen week of quizzes has finished
 
 		echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
 		read
@@ -167,8 +169,8 @@ function ask_quiz_questions()
 	
 	echo && echo && echo
 	
-	# display quiz name and instructions
-	echo -e "${id}:"
+	# display quiz theme and instructions
+	echo -e "${quiz_theme_string}:"
 	for line in "${quiz_instructions_array[@]}"
 	do
 		echo -e "$line"
@@ -277,11 +279,11 @@ function serve_oral_question()
 
 function enum_list()
 {
-	list=$1
+	list=$1 #
 	while [ ${#list} -gt 0 ]
 	do
 		item=${list%%':'*}
-		yoruba_oral_question=${list#"${item}:"} 
+		list=${list#"${item}:"} 
 		echo -e "		$item" # 
 	done
 }
@@ -301,11 +303,16 @@ function get_user_quiz_choice()
 {
 	echo -e "\033[33mWHICH QUIZ TO RUN? CHOOSE A NUMBER.\033[0m" && sleep 1 && echo
 
-	echo -e "1 = Week 1: Alphabet"
-	echo -e "2 = Week 2: "
-	echo -e "3 = Week 3:"
-	echo -e "4 = Week 4:"
-	echo -e "5 = Week 5: ‘àw\u006F\u0323n’"
+	echo -e "1 = Week 1: (1) Yoruba Alphabet"
+	echo -e "2 = Week 2: (3) Oral Vowels, Nasal Vowels, Consonants"
+	echo -e "3 = Week 3: (2) Tones, Communication In Class "
+	echo -e "4 = Week 4: (1) Numbers 0 - 20"
+	echo -e "5 = Week 5: (3) Numbers 21 - 40, General Vocabulary, Greetings"
+  echo -e "6 = Week 6: (8) Verbs, Verb Negation, Subject Pronouns, Interrogatives"
+	echo -e "7 = Week 7: (4) Classroom Vocabulary, Possessive Pronouns, The Plural Marker"
+	echo -e "8 = Week 8: ()"
+	echo -e "9 = Week 9: ()"
+	echo -e "10 = Week 10: ()"
 
 	read quiz_choice
 }
@@ -335,6 +342,16 @@ function create_user_quiz_choice()
 		'4')	build_week_quizzes "$quiz_data_week_04"
 			;;
 		'5')	build_week_quizzes "$quiz_data_week_05"
+			;;
+    '6')	build_week_quizzes "$quiz_data_week_06"
+			;;
+		'7')	build_week_quizzes "$quiz_data_week_07"
+			;;
+		'8')	build_week_quizzes "$quiz_data_week_08"
+			;;
+		'9')	build_week_quizzes "$quiz_data_week_09"
+			;;
+		'10')	build_week_quizzes "$quiz_data_week_10"
 			;;
 		*)  
 	esac

@@ -7,15 +7,18 @@ function build_week_quizzes()
 {
 	path_to_quiz_data="$1"
 
-	echo "path_to_quiz_data passed in and set to $path_to_quiz_data"
+	#echo "path_to_quiz_data passed in and set to $path_to_quiz_data"
 
-	# the -r option returns unquoted, line-separated string
+	# NOTES ON THE jq PROGRAM:
+  #==================  
+  # the -r option returns unquoted, line-separated string
 	# the -j option gives unquoted and no newline
 	# no option gives quoted, line-separated strings
 
-	# values that are returned by jq as concatenated strings to be arrayed get an IFS.
-	# single string values don't. same sed applied to both (all) cases though!
-	# everything was single-quoted for consistent handling of all JSON files
+	# values that are returned by jq as 'concatenated strings to be arrayed' get an IFS.
+	# single string values don't. 
+  # conveniently, the same sed command is applied to both (all) cases though!
+	# therefore, for consistent handling, everything was single-quoted.
 
 	# IMPORT YORUBA-REVIEW-CLASS ATTRIBUTES FROM JSON AS SINGLE STRINGS:
 	#===============================================
@@ -45,15 +48,18 @@ function build_week_quizzes()
 	IFS='|'
 
 	quiz_name_array=( $quiz_name_string )
+  echo "quiz_name_array:"
 	echo "${quiz_name_array[@]}"
 	echo && echo
+  echo "quiz_name_array size:"
 	echo "${#quiz_name_array[@]}"
+  echo && echo
 
 	IFS=$OIFS
 
 	for quiz_id in "${quiz_name_array[@]}"
 	do
-		echo $quiz_id
+		echo "quiz_id: $quiz_id" && echo && echo
 		build_and_run_each_quiz "$quiz_id"
 	done
 }
@@ -68,11 +74,16 @@ function build_and_run_each_quiz
 	id="$1"	
 	# the unique quiz identifier (aka quiz_id) with single quotes added back
 	id="'${id}'"
-	echo -e $id  #&& exit 0
+	echo -e "unique id to FILTER from JSON: $id" 
 
 	quiz_type_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizType' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
 	echo "quiz_type_string:"
 	echo -e "$quiz_type_string"
+	echo && echo
+
+  quiz_theme_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizTheme' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	echo "quiz_theme_string:"
+	echo -e "$quiz_theme_string"
 	echo && echo
 
 	quiz_play_sequence_default_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizPlaySequenceDefault' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
@@ -90,9 +101,12 @@ function build_and_run_each_quiz
 	IFS='|'
 
 	quiz_instructions_array=( $quiz_instructions_string )
-	echo "quiz_instructions_array"
-	echo "${#quiz_instructions_array[@]}"
+	echo "quiz_instructions_array:"	
+  echo "${quiz_instructions_array[@]}"
 	echo && echo
+  echo "quiz_instructions_array size:"
+  echo "${#quiz_instructions_array[@]}"
+  echo && echo
 
 
 	IFS=$OIFS
