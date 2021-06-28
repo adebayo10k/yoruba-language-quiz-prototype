@@ -59,6 +59,7 @@ function build_week_quizzes()
 
 	for quiz_id in "${quiz_name_array[@]}"
 	do
+    clear # clear console before beginning the new quiz
 		echo "quiz_id: $quiz_id" && echo && echo
 		build_and_run_each_quiz "$quiz_id"
 	done
@@ -167,6 +168,8 @@ function build_and_run_each_quiz
 
 	# set quiz_length variable for later use
 	quiz_length="${#current_english_phrases_list[@]}"
+
+  read # a pause so we can read the debug output
 
 	# run the actual quiz using our current quiz data
 	ask_quiz_questions

@@ -49,7 +49,7 @@ function main
 	all_filepath_regex='^(/?[A-Za-z0-9._~:@-]+)+(/)?$' # both relative and absolute file path
 	actual_host=$(hostname)
 	project_root_dir="$(dirname $0)"
-	#echo "project root directory is now set to: $project_root_dir"
+	echo "project root directory is now set to: $project_root_dir"
 
 	# JSON quiz data file locations
 	quiz_data_week_01="${project_root_dir}/../app-data/review-class-week-01/quiz-week-01.json"
@@ -166,7 +166,7 @@ function make_ordered_num_range()
 function ask_quiz_questions()
 {
 	
-	echo && echo && echo
+	clear && echo && echo && echo
 	
 	# display quiz theme and instructions
 	echo -e "${quiz_theme_string}:"
@@ -292,13 +292,13 @@ function enum_list()
 ##############################################################
 
 # class review quiz creation functions
-source "${project_root_dir}/yoruba-quiz-builder.sh"
+source ./yoruba-quiz-builder.sh
 
 
 ##############################################################
 
 # included source files for user menu options
-source "${project_root_dir}/../app-data/review-week-menu.sh"
+source ./../app-data/review-week-menu.sh
 
 
 ##############################################################
