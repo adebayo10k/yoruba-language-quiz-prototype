@@ -89,14 +89,13 @@ function main
 	while true
 	do
 
-		get_user_quiz_choice
+		get_user_quiz_week_choice
 
 		get_user_player_count_choice
     
     # we now have all configuration instructions that we needed from user
-
-		# calls included functions to assemble data structures for the specific week quiz
-		create_user_quiz_choice # TODO: rename to structure_chosen_quiz_data
+		
+    call_user_selected_review_week_builder
 
     # returns here when the chosen week of quizzes has finished
 
@@ -293,31 +292,16 @@ function enum_list()
 ##############################################################
 
 # class review quiz creation functions
-source ./yoruba-quiz-builder.sh
-
+source "${project_root_dir}/yoruba-quiz-builder.sh"
 
 
 ##############################################################
 
-function get_user_quiz_choice() 
-{
-	echo -e "\033[33mWHICH QUIZ TO RUN? CHOOSE A NUMBER.\033[0m" && sleep 1 && echo
+# included source files for user menu options
+source "${project_root_dir}/../app-data/review-week-menu.sh"
 
-	echo -e "1 = Week 1: (1) Yoruba Alphabet"
-	echo -e "2 = Week 2: (3) Oral Vowels, Nasal Vowels, Consonants"
-	echo -e "3 = Week 3: (2) Tones, Communication In Class "
-	echo -e "4 = Week 4: (1) Numbers 0 - 20"
-	echo -e "5 = Week 5: (3) Numbers 21 - 40, General Vocabulary, Greetings"
-  echo -e "6 = Week 6: (8) Verbs, Verb Negation, Subject Pronouns, Interrogatives"
-	echo -e "7 = Week 7: (4) Classroom Vocabulary, Possessive Pronouns, The Plural Marker"
-	echo -e "8 = Week 8: ()"
-	echo -e "9 = Week 9: ()"
-	echo -e "10 = Week 10: ()"
 
-	read quiz_choice
-}
-	
-###############################################################################################
+##############################################################
 function get_user_player_count_choice() 
 {
 		echo -e "\033[33mHOW MANY QUIZ PLAYERS?.\033[0m" && sleep 1 && echo
@@ -325,14 +309,17 @@ function get_user_player_count_choice()
 		read num_of_players
 		num_of_responses_to_display="$num_of_players"
 }
-	
-###############################################################################################
-function create_user_quiz_choice() 
+
+##############################################################
+
+function call_user_selected_review_week_builder() 
 {
 
 	clear && echo
 
-	case $quiz_choice in
+  # calls included file function to assemble data structures for the specific, user-selected quiz week
+
+	case $quiz_week_choice in
 		'1')	build_week_quizzes "$quiz_data_week_01"
 			;;
 		'2')	build_week_quizzes "$quiz_data_week_02"
@@ -357,7 +344,7 @@ function create_user_quiz_choice()
 	esac
 	
 }
-	
-###############################################################################################
+
+##############################################################
 
 main "$@"; exit

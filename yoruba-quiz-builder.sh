@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# this function imports the json quiz data and then structures
+# this function imports the json quiz week data and then structures
 # it into the arrays needed by the main quiz execution function
 
 function build_week_quizzes() 
