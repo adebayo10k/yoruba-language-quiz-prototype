@@ -63,7 +63,9 @@ function main
  	quiz_data_week_09="${project_root_dir}/../app-data/review-class-week-09/quiz-week-09.json"
  	quiz_data_week_10="${project_root_dir}/../app-data/review-class-week-10/quiz-week-10.json"
 
-	num_of_players=1 # default value for quizzes to clear screen after every answer 
+	num_of_players=1 # default value for quizzes to clear screen after every answer
+  min_players=1
+  max_players=4
 	num_of_responses_to_display="$num_of_players"
 	quiz_length=
 	quiz_type=
@@ -132,8 +134,9 @@ function main
 ####  FUNCTION DECLARATIONS  
 #######################################################################################
 
-# included source files for common header functions
+# included source files for common functions
 source ./common-src/header-functions.sh
+source ./common-src/error-handler-functions.sh
 
 
 # populates a globally accessible array with shuffled integer values
@@ -189,8 +192,8 @@ function ask_quiz_questions()
 		make_ordered_num_range 0 "$(( ${#current_english_phrases_list[@]} - 1 ))"
 	else
 		## exit with error code and message
-		echo "quiz play sequence not set"
-		exit 1
+    msg="quiz play sequence not set. Exiting now..."
+		exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
 	fi
 
 	# initialise before quiz starts
@@ -226,8 +229,8 @@ function ask_quiz_questions()
 			serve_oral_question "$elem"
 		else
 			## exit with error code and message
-			echo "quiz type not set"
-			exit 1
+      msg="quiz type not set. Exiting now..."
+		  exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
 		fi
 
 		num_of_responses_showing=$((num_of_responses_showing + 1))
@@ -304,10 +307,19 @@ source ./../app-data/review-week-menu.sh
 ##############################################################
 function get_user_player_count_choice() 
 {
-		echo -e "\033[33mHOW MANY QUIZ PLAYERS?.\033[0m" && sleep 1 && echo
+		echo -e "\033[33mHOW MANY QUIZ PLAYERS? ["${min_players}"-"${max_players}"].\033[0m" && sleep 1 && echo
 
 		read num_of_players
-		num_of_responses_to_display="$num_of_players"
+    
+    # validate user input (TODO: separate these out)
+    if [[ "$num_of_players" =~ '^[0-9]+$' ]] && [ "$num_of_players" -ge "$min_players" ] && [ "$num_of_players" -le "$max_players"  ]
+    then
+      num_of_responses_to_display="$num_of_players"
+    else
+      ## exit with error code and message
+      msg="The number of players you entered is bad. Exiting now..."
+		  exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
+    fi
 }
 
 ##############################################################
