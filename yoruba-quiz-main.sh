@@ -312,7 +312,8 @@ function get_user_player_count_choice()
 		read num_of_players
     
     # validate user input (TODO: separate these out)
-    if [[ "$num_of_players" =~ '^[0-9]+$' ]] && [ "$num_of_players" -ge "$min_players" ] && [ "$num_of_players" -le "$max_players"  ]
+    # NOTE: discovered that regex only need be single quoted when assigned to variable.
+    if  [[ "$num_of_players" =~ ^[0-9]+$ ]] && [ "$num_of_players" -ge "$min_players" ] && [ "$num_of_players" -le "$max_players"  ]  #
     then
       num_of_responses_to_display="$num_of_players"
     else
@@ -342,7 +343,7 @@ function call_user_selected_review_week_builder()
 			;;
 		'5')	build_week_quizzes "$quiz_data_week_05"
 			;;
-    '6')	build_week_quizzes "$quiz_data_week_06"
+		'6')	build_week_quizzes "$quiz_data_week_06"
 			;;
 		'7')	build_week_quizzes "$quiz_data_week_07"
 			;;
