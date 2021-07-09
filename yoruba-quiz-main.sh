@@ -38,14 +38,14 @@ else
 fi
 
 # included source files for common functions
-source "${canonical_dirname}/common-src/header-functions.sh"
-source "${canonical_dirname}/common-src/error-handler-functions.sh"
+source "${canonical_dirname}/common-src/header-functions.inc.sh"
+source "${canonical_dirname}/common-src/error-handler-functions.inc.sh"
 
 # class review quiz creation functions
-source "${canonical_dirname}/yoruba-quiz-builder.sh"
+source "${canonical_dirname}/yoruba-quiz-builder.inc.sh"
 
 # included source files for user menu options
-source "${canonical_dirname}/../app-data/review-week-menu.sh"
+source "${canonical_dirname}/../app-data/review-week-menu.inc.sh"
 
 
 # THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
