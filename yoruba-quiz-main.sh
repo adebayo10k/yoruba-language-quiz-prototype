@@ -4,20 +4,54 @@
 #: Author		:adebayo10k
 #: Version		:1.0
 #: Description	: script to help us practice our Yorùbá vocabulary. \ 
-#: Description	: a prototype quiz application for Yorùbá language learners
-#: Description	:
+#: Description	: a proof-of-concept quiz application for Yorùbá language learners
+#: Description	: prototype
 #: Options		:
 ##
+	
+##################################################################
+##################################################################
+# THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
 
-	#######################################################################
+# must resolve canonical_fullpath here, in order to be able to include sourced function files BEFORE we call main, and  outside of any other functions defined here, of course.
 
-	## REMEMBER TO CAPITALISE ONLY THOSE VARIABLES THAT ARE DEFINITELY
-	## BEING EXPORTED TO THE ENVIRONMENT! UNTIL THEN, USE LOWERCASE. 
-	## or, should we..
-	## CAPITALISE VARIABLES TO DISTINGUISH THEM FROM COMMANDS?
-	## let's look at what others do on github.
+# at runtime, command_fullpath may be either a symlink file or actual target source file
+command_fullpath="$0"
+command_dirname="$(dirname $0)"
+command_basename="$(basename $0)"
 
-	#######################################################################
+# if a symlink file, then we need a reference to the canonical file name, as that's the location where all our required source files definitely will be.
+# we'll test whether a symlink, then use readlink -f or realpath -e although those commands return canonical file whether symlink or not.
+# 
+canonical_fullpath="$(readlink -f $command_fullpath)"
+canonical_dirname="$(dirname $canonical_fullpath)"
+
+
+# this is just development debug information
+if [ -h "$command_fullpath" ]
+then
+	echo "is symlink"
+	echo "canonical_fullpath : $canonical_fullpath"
+else
+	echo "is canonical"
+	echo "canonical_fullpath : $canonical_fullpath"
+fi
+
+# included source files for common functions
+source "${canonical_dirname}/common-src/header-functions.sh"
+source "${canonical_dirname}/common-src/error-handler-functions.sh"
+
+# class review quiz creation functions
+source "${canonical_dirname}/yoruba-quiz-builder.sh"
+
+# included source files for user menu options
+source "${canonical_dirname}/../app-data/review-week-menu.sh"
+
+
+# THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
+##################################################################
+##################################################################
+
 
 
 function main 
@@ -48,20 +82,20 @@ function main
 	abs_filepath_regex='^(/{1}[A-Za-z0-9._~:@-]+)+/?$' # absolute file path, ASSUMING NOT HIDDEN FILE, ...
 	all_filepath_regex='^(/?[A-Za-z0-9._~:@-]+)+(/)?$' # both relative and absolute file path
 	actual_host=$(hostname)
-	project_root_dir="$(dirname $0)"
-	echo "project root directory is now set to: $project_root_dir"
+
+	echo "project root directory is set to: $canonical_dirname"
 
 	# JSON quiz data file locations
-	quiz_data_week_01="${project_root_dir}/../app-data/review-class-week-01/quiz-week-01.json"
-	quiz_data_week_02="${project_root_dir}/../app-data/review-class-week-02/quiz-week-02.json"
-	quiz_data_week_03="${project_root_dir}/../app-data/review-class-week-03/quiz-week-03.json"
- 	quiz_data_week_04="${project_root_dir}/../app-data/review-class-week-04/quiz-week-04.json"
- 	quiz_data_week_05="${project_root_dir}/../app-data/review-class-week-05/quiz-week-05.json"
-  quiz_data_week_06="${project_root_dir}/../app-data/review-class-week-06/quiz-week-06.json"
-	quiz_data_week_07="${project_root_dir}/../app-data/review-class-week-07/quiz-week-07.json"
-	quiz_data_week_08="${project_root_dir}/../app-data/review-class-week-08/quiz-week-08.json"
- 	quiz_data_week_09="${project_root_dir}/../app-data/review-class-week-09/quiz-week-09.json"
- 	quiz_data_week_10="${project_root_dir}/../app-data/review-class-week-10/quiz-week-10.json"
+	quiz_data_week_01="${canonical_dirname}/../app-data/review-class-week-01/quiz-week-01.json"
+	quiz_data_week_02="${canonical_dirname}/../app-data/review-class-week-02/quiz-week-02.json"
+	quiz_data_week_03="${canonical_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
+ 	quiz_data_week_04="${canonical_dirname}/../app-data/review-class-week-04/quiz-week-04.json"
+ 	quiz_data_week_05="${canonical_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
+  quiz_data_week_06="${canonical_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
+	quiz_data_week_07="${canonical_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
+	quiz_data_week_08="${canonical_dirname}/../app-data/review-class-week-08/quiz-week-08.json"
+ 	quiz_data_week_09="${canonical_dirname}/../app-data/review-class-week-09/quiz-week-09.json"
+ 	quiz_data_week_10="${canonical_dirname}/../app-data/review-class-week-10/quiz-week-10.json"
 
 	num_of_players=1 # default value for quizzes to clear screen after every answer
   min_players=1
@@ -133,11 +167,6 @@ function main
 #######################################################################################
 ####  FUNCTION DECLARATIONS  
 #######################################################################################
-
-# included source files for common functions
-source ./common-src/header-functions.sh
-source ./common-src/error-handler-functions.sh
-
 
 # populates a globally accessible array with shuffled integer values
 function make_shuffled_num_range()
@@ -289,20 +318,6 @@ function enum_list()
 		echo -e "		$item" # 
 	done
 }
-
-
-
-##############################################################
-
-# class review quiz creation functions
-source ./yoruba-quiz-builder.sh
-
-
-##############################################################
-
-# included source files for user menu options
-source ./../app-data/review-week-menu.sh
-
 
 ##############################################################
 function get_user_player_count_choice() 
