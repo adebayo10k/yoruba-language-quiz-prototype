@@ -12,6 +12,26 @@
 ##################################################################
 ##################################################################
 # THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
+#===================================
+
+# 1. MAKE SHARED LIBRARY FUNCTIONS AVAILABLE HERE
+
+# make all those library function available to this script
+shared_bash_functions_fullpath="${SHARED_LIBRARIES_DIR}/shared-bash-functions.sh"
+
+if [ -f "$shared_bash_functions_fullpath" ]
+then
+	echo "got our library functions ok"
+else
+	echo "failed to get our functions library. Exiting now."
+	exit 1
+fi
+
+# include source file for common functions
+source "$shared_bash_functions_fullpath"
+
+
+# 2. MAKE SCRIPT-SPECIFIC FUNCTIONS AVAILABLE HERE
 
 # must resolve canonical_fullpath here, in order to be able to include sourced function files BEFORE we call main, and  outside of any other functions defined here, of course.
 
@@ -37,9 +57,8 @@ else
 	echo "canonical_fullpath : $canonical_fullpath"
 fi
 
-# included source files for common functions
+
 source "${canonical_dirname}/common-src/header-functions.inc.sh"
-source "${canonical_dirname}/common-src/error-handler-functions.inc.sh"
 
 # class review quiz creation functions
 source "${canonical_dirname}/yoruba-quiz-builder.inc.sh"
@@ -51,7 +70,6 @@ source "${canonical_dirname}/../app-data/review-week-menu.inc.sh"
 # THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
 ##################################################################
 ##################################################################
-
 
 
 function main 
@@ -222,7 +240,7 @@ function ask_quiz_questions()
 	else
 		## exit with error code and message
     msg="quiz play sequence not set. Exiting now..."
-		exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
+		lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
 	fi
 
 	# initialise before quiz starts
@@ -259,7 +277,7 @@ function ask_quiz_questions()
 		else
 			## exit with error code and message
       msg="quiz type not set. Exiting now..."
-		  exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
+		  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
 		fi
 
 		num_of_responses_showing=$((num_of_responses_showing + 1))
@@ -334,7 +352,7 @@ function get_user_player_count_choice()
     else
       ## exit with error code and message
       msg="The number of players you entered is bad. Exiting now..."
-		  exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
+		  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
     fi
 }
 
