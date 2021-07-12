@@ -86,6 +86,10 @@ function main
 	max_expected_no_of_program_parameters=0
 	actual_no_of_program_parameters=$#
 
+	program_title=""
+	original_author=""
+	program_dependencies=("vi" "jq" "curl" "cowsay")
+
 	actual_host=$(hostname)
 
 	echo "project root directory is set to: $canonical_dirname"
@@ -117,7 +121,7 @@ function main
 
 	###############################################################################################
 
-	check_program_requirements
+	check_program_requirements "${program_dependencies[@]}"
 
 	display_program_header
 

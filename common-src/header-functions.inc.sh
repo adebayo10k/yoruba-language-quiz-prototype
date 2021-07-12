@@ -1,24 +1,4 @@
 
-function check_program_requirements() 
-{
-	declare -a dependencies=(vi jq curl cowsay)
-
-	for program_name in ${dependencies[@]}
-	do
-	  if type $program_name >/dev/null 2>&1
-		then
-			:
-			clear
-			#echo "$program_name already installed OK"
-		else
-			echo "${program_name} is NOT installed."
-			echo "program dependencies are: ${dependencies[@]}"
-  	echo "exiting with error" && echo && exit 1
-		fi
-	done
-}
-
-###############################################################################################
 # Display a program header:
 function display_program_header(){
 
