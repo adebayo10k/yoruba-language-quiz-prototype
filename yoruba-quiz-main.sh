@@ -62,9 +62,6 @@ else
 	echo "canonical_fullpath : $canonical_fullpath"
 fi
 
-
-source "${canonical_dirname}/common-src/header-functions.inc.sh"
-
 # class review quiz creation functions
 source "${canonical_dirname}/yoruba-quiz-builder.inc.sh"
 
