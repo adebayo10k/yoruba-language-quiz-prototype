@@ -76,12 +76,22 @@ source "${canonical_dirname}/../app-data/review-week-menu.inc.sh"
 
 function main 
 {
-	###############################################################################################
+	#######################################################################
 	# GLOBAL VARIABLE DECLARATIONS:
-	###############################################################################################
+	#######################################################################
 
-	max_expected_no_of_program_parameters=0
-	actual_no_of_program_parameters=$#
+	actual_host=$(hostname)
+	unset authorised_host_list
+	declare -a authorised_host_list=($HOST_0065 $HOST_0054 $HOST_R001 $HOST_R002)  # allow | deny
+	if [[ $(declare -a | grep 'authorised_host_list' 2>/dev/null) ]]
+	then
+		entry_test
+	fi
+
+	declare -i max_expected_no_of_program_parameters=0
+	declare -i min_expected_no_of_program_parameters=0
+	declare -ir actual_no_of_program_parameters=$#
+	all_the_parameters_string="$@"
 
 	program_title=""
 	original_author=""
