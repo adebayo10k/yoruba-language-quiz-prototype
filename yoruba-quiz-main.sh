@@ -97,8 +97,6 @@ function main
 	original_author=""
 	program_dependencies=("vi" "jq" "curl" "cowsay")
 
-	actual_host=$(hostname)
-
 	echo "project root directory is set to: $canonical_dirname"
 
 	# JSON quiz data file locations
@@ -107,15 +105,15 @@ function main
 	quiz_data_week_03="${canonical_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
  	quiz_data_week_04="${canonical_dirname}/../app-data/review-class-week-04/quiz-week-04.json"
  	quiz_data_week_05="${canonical_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
-  quiz_data_week_06="${canonical_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
+    quiz_data_week_06="${canonical_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
 	quiz_data_week_07="${canonical_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
 	quiz_data_week_08="${canonical_dirname}/../app-data/review-class-week-08/quiz-week-08.json"
  	quiz_data_week_09="${canonical_dirname}/../app-data/review-class-week-09/quiz-week-09.json"
  	quiz_data_week_10="${canonical_dirname}/../app-data/review-class-week-10/quiz-week-10.json"
 
 	num_of_players=1 # default value for quizzes to clear screen after every answer
-  min_players=1
-  max_players=4
+    min_players=1
+    max_players=4
 	num_of_responses_to_display="$num_of_players"
 	quiz_length=
 	quiz_type=
@@ -145,14 +143,14 @@ function main
 
 		get_user_player_count_choice
     
-    # we now have all configuration instructions that we needed from user
+        # we now have all configuration instructions that we needed from user
 		
-    call_user_selected_review_week_builder
+        call_user_selected_review_week_builder
 
-    # returns here when the chosen week of quizzes has finished
+        # returns here when the chosen week of quizzes has finished
 
-		echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
-		read
+	    echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
+	    read
 
 		echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
 
@@ -213,20 +211,49 @@ function make_ordered_num_range()
 # iterate over num_range_arr numbers array to select questions in the global current quiz
 function ask_quiz_questions()
 {
-	
-	clear && echo && echo && echo
-	
-	# display quiz theme and instructions
-	echo -e "${quiz_theme_string}:"
+    clear # clear console before showing new quiz information
+
+    # display:
+    # quiz name (unique)
+    # quiz size (number of questions)
+    # quiz play sequence (ordered or shuffled)
+    # quiz content (a preview)
+    # quiz instructions 
+
+	# display quiz theme (or name) and instructions
+    echo "quiz theme (or name):"
+    echo -e "${quiz_theme_string}"
+    echo
+
+    # quiz size (number of questions)
+    echo "$quiz_length questions"
+    echo
+
+    # quiz play sequence (ordered or shuffled)
+    echo "quiz questions sequence (ordered or shuffled):"
+	echo -e "$quiz_play_sequence_default_string"
+	echo
+
+    # quiz content (a preview)
+    echo "quiz_english_phrases_string:"
+	echo -e "$quiz_english_phrases_string"
+	echo && echo
+
+    echo "quiz_yoruba_phrases_string:"
+	echo -e "$quiz_yoruba_phrases_string"
+	echo && echo
+
+    read    # user acknowledges info
+    clear
+
+    # quiz instructions 
 	for line in "${quiz_instructions_array[@]}"
 	do
 		echo -e "$line"
 	done
 
-	read
-	
-	echo "$quiz_length questions"
-	read
+	read    # user acknowledges info
+
 	
 	# create a number sequence to 'pilot' the quiz order
 	if [[ "$quiz_play_sequence_default_string" = 'shuffled' ]]
@@ -237,7 +264,7 @@ function ask_quiz_questions()
 		make_ordered_num_range 0 "$(( ${#current_english_phrases_list[@]} - 1 ))"
 	else
 		## exit with error code and message
-    msg="quiz play sequence not set. Exiting now..."
+        msg="quiz play sequence not set. Exiting now..."
 		lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
 	fi
 
@@ -262,8 +289,7 @@ function ask_quiz_questions()
 			num_of_responses_showing=0 # reset
 		fi
 		
-		echo && echo && echo # for positioning and display of next terminal output	only	
-
+		echo && echo && echo # for positioning and display of next console output	only	
 
 		# handle quiz question serve method based on the quiz_type_string
 		if [[ "$quiz_type_string" = 'vocabulary' ]]
@@ -274,8 +300,8 @@ function ask_quiz_questions()
 			serve_oral_question "$elem"
 		else
 			## exit with error code and message
-      msg="quiz type not set. Exiting now..."
-		  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
+            msg="quiz type not set. Exiting now..."
+            lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
 		fi
 
 		num_of_responses_showing=$((num_of_responses_showing + 1))
@@ -338,9 +364,9 @@ function enum_list()
 ##############################################################
 function get_user_player_count_choice() 
 {
-		echo -e "\033[33mHOW MANY QUIZ PLAYERS? ["${min_players}"-"${max_players}"].\033[0m" && sleep 1 && echo
+	echo -e "\033[33mHOW MANY QUIZ PLAYERS? ["${min_players}"-"${max_players}"].\033[0m"
 
-		read num_of_players
+    read num_of_players
     
     # validate user input (TODO: separate these out)
     # NOTE: discovered that regex only need be single quoted when assigned to variable.
@@ -358,9 +384,6 @@ function get_user_player_count_choice()
 
 function call_user_selected_review_week_builder() 
 {
-
-	clear && echo
-
   # calls included file function to assemble data structures for the specific, user-selected quiz week
 
 	case $quiz_week_choice in
