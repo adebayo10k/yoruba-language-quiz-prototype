@@ -79,9 +79,9 @@ function build_and_run_each_quiz
 	#echo -e "$quiz_type_string"
 	#echo && echo
 
-    quiz_theme_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizTheme' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//")
-    #echo "quiz_theme_string:"
-    #echo -e "$quiz_theme_string"
+    quiz_category_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizCategory' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//")
+    #echo "quiz_category_string:"
+    #echo -e "$quiz_category_string"
 	#echo && echo
 
 	quiz_play_sequence_default_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizPlaySequenceDefault' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
@@ -137,7 +137,7 @@ function build_and_run_each_quiz
 	IFS='|'
 
 	# assign the current_english_phrases_list array
-	# create array after separating single-quoted phrases with a space character
+	# create array after separating single-quoted phrases with a character
 	current_english_phrases_list=( $quiz_english_phrases_string )
 	#echo "${current_english_phrases_list[@]}"
 	#echo && echo

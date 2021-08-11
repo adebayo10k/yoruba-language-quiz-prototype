@@ -222,7 +222,7 @@ function ask_quiz_questions()
 
 	# display quiz theme (or name) and instructions
     echo "quiz theme (or name):"
-    echo -e "${quiz_theme_string}"
+    echo -e "${quiz_category_string}"
     echo
 
     # quiz size (number of questions)
