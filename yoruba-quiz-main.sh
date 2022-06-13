@@ -2,114 +2,53 @@
 #: Title		:yoruba-quiz-main.sh
 #: Date			:2021-04-03
 #: Author		:adebayo10k
-#: Version		:1.0
+#: Version		:
 #: Description	: script to help us practice our Yorùbá vocabulary. \ 
 #: Description	: a proof-of-concept quiz application for Yorùbá language learners
 #: Description	: prototype
 #: Options		:
 ##
-	
-##################################################################
-##################################################################
-# THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
-#===================================
 
-# 1. MAKE SHARED LIBRARY FUNCTIONS AVAILABLE HERE
+## THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
 
-# make all the shared library functions available to this script
-shared_bash_functions_fullpath="${SHARED_LIBRARIES_DIR}/shared-bash-functions.inc.sh"
-shared_bash_constants_fullpath="${SHARED_LIBRARIES_DIR}/shared-bash-constants.inc.sh"
+command_fullpath="$(readlink -f $0)" 
+command_basename="$(basename $command_fullpath)"
+command_dirname="$(dirname $command_fullpath)"
 
-for resource in "$shared_bash_functions_fullpath" "$shared_bash_constants_fullpath"
+for file in "${command_dirname}/includes"/*
 do
-	if [ -f "$resource" ]
-	then
-		echo "Required library resource FOUND OK at:"
-		echo "$resource"
-		source "$resource"
-	else
-		echo "Could not find the required resource at:"
-		echo "$resource"
-		echo "Check that location. Nothing to do now, except exit."
-		exit 1
-	fi
+	source "$file"
 done
 
+## THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
 
-# 2. MAKE SCRIPT-SPECIFIC FUNCTIONS AVAILABLE HERE
-
-# must resolve canonical_fullpath here, in order to be able to include sourced function files BEFORE we call main, and  outside of any other functions defined here, of course.
-
-# at runtime, command_fullpath may be either a symlink file or actual target source file
-command_fullpath="$0"
-command_dirname="$(dirname $0)"
-command_basename="$(basename $0)"
-
-# if a symlink file, then we need a reference to the canonical file name, as that's the location where all our required source files definitely will be.
-# we'll test whether a symlink, then use readlink -f or realpath -e although those commands return canonical file whether symlink or not.
-# 
-canonical_fullpath="$(readlink -f $command_fullpath)"
-canonical_dirname="$(dirname $canonical_fullpath)"
-
-
-# this is just development debug information
-if [ -h "$command_fullpath" ]
-then
-	echo "is symlink"
-	echo "canonical_fullpath : $canonical_fullpath"
-else
-	echo "is canonical"
-	echo "canonical_fullpath : $canonical_fullpath"
-fi
-
-# class review quiz creation functions
-source "${canonical_dirname}/yoruba-quiz-builder.inc.sh"
-
-# included source files for user menu options
-source "${canonical_dirname}/../app-data/review-week-menu.inc.sh"
-
-
-# THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
-##################################################################
-##################################################################
-
-
-function main 
-{
-	#######################################################################
+function main(){
+	##############################
 	# GLOBAL VARIABLE DECLARATIONS:
-	#######################################################################
-
-	actual_host=$(hostname)
-	unset authorised_host_list
-	declare -a authorised_host_list=($HOST_0065 $HOST_0054 $HOST_R001 $HOST_R002)  # allow | deny
-	if [[ $(declare -a | grep 'authorised_host_list' 2>/dev/null) ]]
-	then
-		entry_test
-	fi
+	##############################
+	program_title="yoruba quiz prototype"
+	original_author="damola adebayo"
+	program_dependencies=("vi" "jq" "shuf" "seq")
 
 	declare -i max_expected_no_of_program_parameters=0
 	declare -i min_expected_no_of_program_parameters=0
 	declare -ir actual_no_of_program_parameters=$#
 	all_the_parameters_string="$@"
 
-	program_title=""
-	original_author=""
-	program_dependencies=("vi" "jq" "curl" "cowsay")
-
-	echo "project root directory is set to: $canonical_dirname"
+	declare -a authorised_host_list=()
+	actual_host=`hostname`
 
 	# JSON quiz data file locations
-	quiz_data_week_01="${canonical_dirname}/../app-data/review-class-week-01/quiz-week-01.json"
-	quiz_data_week_02="${canonical_dirname}/../app-data/review-class-week-02/quiz-week-02.json"
-	quiz_data_week_03="${canonical_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
- 	quiz_data_week_04="${canonical_dirname}/../app-data/review-class-week-04/quiz-week-04.json"
- 	quiz_data_week_05="${canonical_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
-    quiz_data_week_06="${canonical_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
-	quiz_data_week_07="${canonical_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
-	quiz_data_week_08="${canonical_dirname}/../app-data/review-class-week-08/quiz-week-08.json"
- 	quiz_data_week_09="${canonical_dirname}/../app-data/review-class-week-09/quiz-week-09.json"
- 	quiz_data_week_10="${canonical_dirname}/../app-data/review-class-week-10/quiz-week-10.json"
+	quiz_data_week_01="${command_dirname}/../app-data/review-class-week-01/quiz-week-01.json"
+	quiz_data_week_02="${command_dirname}/../app-data/review-class-week-02/quiz-week-02.json"
+	quiz_data_week_03="${command_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
+ 	quiz_data_week_04="${command_dirname}/../app-data/review-class-week-04/quiz-week-04.json"
+ 	quiz_data_week_05="${command_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
+    quiz_data_week_06="${command_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
+	quiz_data_week_07="${command_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
+	quiz_data_week_08="${command_dirname}/../app-data/review-class-week-08/quiz-week-08.json"
+ 	quiz_data_week_09="${command_dirname}/../app-data/review-class-week-09/quiz-week-09.json"
+ 	quiz_data_week_10="${command_dirname}/../app-data/review-class-week-10/quiz-week-10.json"
 
 	num_of_players=1 # default value for quizzes to clear screen after every answer
     min_players=1
@@ -119,30 +58,43 @@ function main
 	quiz_type=
 	quiz_play_sequence_default_string=
 	declare -a num_range_arr=()
+    quiz_week_choice=1 # default value
 
 	declare -a current_english_phrases_list=()
 	declare -a current_yoruba_phrases_list=()
 	declare -A current_yoruba_translations
 
-	###############################################################################################
+	##############################
+	
+	##############################
+	# FUNCTION CALLS:
+	##############################
+	if [ ! $USER = 'root' ]
+	then
+		## Display a program header
+		lib10k_display_program_header "$program_title" "$original_author"
+		## check program dependencies and requirements
+		lib10k_check_program_requirements "${program_dependencies[@]}"
+	fi
+	
+	# check the number of parameters to this program
+	lib10k_check_no_of_program_args
 
-	check_program_requirements "${program_dependencies[@]}"
+	# controls where this program can be run, to avoid unforseen behaviour
+	lib10k_entry_test
 
-	display_program_header
 
-
-	###############################################################################################
+	##############################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
-	###############################################################################################
+	##############################
 
 	# keep running quizzes until user says stop
 	while true
 	do
 
-		get_user_quiz_week_choice
-
 		get_user_player_count_choice
-    
+        get_user_quiz_week_choice
+   
         # we now have all configuration instructions that we needed from user
 		
         call_user_selected_review_week_builder
@@ -150,7 +102,7 @@ function main
         # returns here when the chosen week of quizzes has finished
 
 	    echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
-	    read
+	    echo "Press ENTER to continue..." && read # user acknowledges info
 
 		echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
 
@@ -194,7 +146,7 @@ function make_shuffled_num_range()
 		num_range_arr+=("${index}") # append an indexed array of shuffled numbers
 	done
 }
-###############################################################################################
+##############################
 # populates a globally accessible array with ordered, sequenced integer values
 function make_ordered_num_range()
 {
@@ -207,7 +159,7 @@ function make_ordered_num_range()
 		num_range_arr+=("${index}") # append an indexed array of sequenced numbers
 	done
 }
-###############################################################################################
+##############################
 # iterate over num_range_arr numbers array to select questions in the global current quiz
 function ask_quiz_questions()
 {
@@ -243,7 +195,7 @@ function ask_quiz_questions()
 	echo -e "$quiz_yoruba_phrases_string"
 	echo && echo
 
-    read    # user acknowledges info
+    echo "Press ENTER to continue..." && read # user acknowledges info
     clear
 
     # quiz instructions 
@@ -252,7 +204,7 @@ function ask_quiz_questions()
 		echo -e "$line"
 	done
 
-	read    # user acknowledges info
+	echo "Press ENTER to continue..." && read # user acknowledges info
 
 	
 	# create a number sequence to 'pilot' the quiz order
@@ -311,15 +263,17 @@ function ask_quiz_questions()
 
 }
 
-###############################################################################################
+##############################
 # vocabulary questions wait for user to respond before displaying answer
 function serve_vocabulary_question() 
 {
 	num=$1
 
 	eng_word="${current_english_phrases_list[$num]}"
-	echo -e "		$eng_word" # -e because some english phrases include Yoruba names
-	read	# wait for user to answer		
+    # -e because some english phrases include Yoruba names
+	echo -e "		$eng_word" && echo 
+    echo "Press ENTER to see translation..." && read # wait for user to answer
+	#read	# wait for user to answer
 
 	# if translation is a colon separated list, print a listing
 	translatedString="${current_yoruba_translations[$eng_word]}"
@@ -370,9 +324,33 @@ function get_user_player_count_choice()
     
     # validate user input (TODO: separate these out)
     # NOTE: discovered that regex only need be single quoted when assigned to variable.
-    if  [[ "$num_of_players" =~ ^[0-9]+$ ]] && [ "$num_of_players" -ge "$min_players" ] && [ "$num_of_players" -le "$max_players"  ]  #
+    if  [[ "$num_of_players" =~ ^[0-9]+$ ]] && \
+    [ "$num_of_players" -ge "$min_players" ] && \
+    [ "$num_of_players" -le "$max_players"  ]  #
     then
       num_of_responses_to_display="$num_of_players"
+    else
+      ## exit with error code and message
+      msg="The number of players you entered is bad. Exiting now..."
+	  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
+    fi
+}
+
+##############################################################
+
+function get_user_quiz_week_choice()
+{
+    echo -e "\033[33mWHICH QUIZ WEEK?\033[0m"
+
+    read quiz_week_num
+    
+    # validate user input (TODO: separate these out)
+    # NOTE: discovered that regex only need be single quoted when assigned to variable.
+    if  [[ "$quiz_week_num" =~ ^[0-9]+$ ]] # && \
+    #[ "$num_of_players" -ge "$min_players" ] && \
+    # [ "$num_of_players" -le "$max_players"  ]  #
+    then
+      quiz_week_choice="$quiz_week_num"
     else
       ## exit with error code and message
       msg="The number of players you entered is bad. Exiting now..."
@@ -385,6 +363,7 @@ function get_user_player_count_choice()
 function call_user_selected_review_week_builder() 
 {
   # calls included file function to assemble data structures for the specific, user-selected quiz week
+  #local quiz_week_choice="$1"
 
 	case $quiz_week_choice in
 		'1')	build_week_quizzes "$quiz_data_week_01"
