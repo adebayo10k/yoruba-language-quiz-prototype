@@ -5,9 +5,7 @@
 
 function build_week_quizzes() 
 {
-	path_to_quiz_data="$1"
-
-	#echo "path_to_quiz_data passed in and set to $path_to_quiz_data"
+	local path_to_quiz_data="$1"
 
 	# NOTES ON THE jq PROGRAM:
   #==================  

@@ -15,6 +15,11 @@ command_fullpath="$(readlink -f $0)"
 command_basename="$(basename $command_fullpath)"
 command_dirname="$(dirname $command_fullpath)"
 
+for file in "${command_dirname}/shared-functions-library"/shared-bash-*
+do
+	source "$file"
+done
+
 for file in "${command_dirname}/includes"/*
 do
 	source "$file"
@@ -38,17 +43,7 @@ function main(){
 	declare -a authorised_host_list=()
 	actual_host=`hostname`
 
-	# JSON quiz data file locations
-	quiz_data_week_01="${command_dirname}/../app-data/review-class-week-01/quiz-week-01.json"
-	quiz_data_week_02="${command_dirname}/../app-data/review-class-week-02/quiz-week-02.json"
-	quiz_data_week_03="${command_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
- 	quiz_data_week_04="${command_dirname}/../app-data/review-class-week-04/quiz-week-04.json"
- 	quiz_data_week_05="${command_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
-    quiz_data_week_06="${command_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
-	quiz_data_week_07="${command_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
-	quiz_data_week_08="${command_dirname}/../app-data/review-class-week-08/quiz-week-08.json"
- 	quiz_data_week_09="${command_dirname}/../app-data/review-class-week-09/quiz-week-09.json"
- 	quiz_data_week_10="${command_dirname}/../app-data/review-class-week-10/quiz-week-10.json"
+	
 
 	num_of_players=1 # default value for quizzes to clear screen after every answer
     min_players=1
@@ -58,11 +53,25 @@ function main(){
 	quiz_type=
 	quiz_play_sequence_default_string=
 	declare -a num_range_arr=()
-    quiz_week_choice=1 # default value
+    quiz_week_choice=1 # default value for now
 
 	declare -a current_english_phrases_list=()
 	declare -a current_yoruba_phrases_list=()
 	declare -A current_yoruba_translations
+
+    # JSON quiz data file locations
+    declare -A quiz_data_file_locations=(
+	    [quiz_data_week_01]="${command_dirname}/../app-data/review-class-week-01/quiz-week-01.json"
+	    [quiz_data_week_02]="${command_dirname}/../app-data/review-class-week-02/quiz-week-02.json"
+	    [quiz_data_week_03]="${command_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
+ 	    [quiz_data_week_04]="${command_dirname}/../app-data/review-class-week-04/quiz-week-04.json"
+ 	    [quiz_data_week_05]="${command_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
+        [quiz_data_week_06]="${command_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
+	    [quiz_data_week_07]="${command_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
+	    [quiz_data_week_08]="${command_dirname}/../app-data/review-class-week-08/quiz-week-08.json"
+ 	    [quiz_data_week_09]="${command_dirname}/../app-data/review-class-week-09/quiz-week-09.json"
+ 	    [quiz_data_week_10]="${command_dirname}/../app-data/review-class-week-10/quiz-week-10.json"
+	)
 
 	##############################
 	
@@ -87,6 +96,9 @@ function main(){
 	##############################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################
+
+    # check that the JSON data files are available and readable
+    check_quiz_data_exists
 
 	# keep running quizzes until user says stop
 	while true
@@ -134,6 +146,32 @@ function main(){
 ####  FUNCTION DECLARATIONS  
 #######################################################################################
 
+function check_quiz_data_exists()
+{
+    for path_to_quiz_data in "${!quiz_data_file_locations[@]}"
+    do
+
+        # if path_to_quiz_data not found, exit with error message/suggestion
+	    lib10k_test_file_path_valid_form "$path_to_quiz_data"
+	    return_code=$?
+	    if [ $return_code -ne 0 ]
+	    then
+	    	msg="Quiz data not yet available. Check https://hub.docker.com/u/adebayo10k for a prototype image of this program. Exiting now..."
+	    	lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
+        fi
+
+        # if path_to_quiz_data not readable, exit with error message/suggestion
+	    lib10k_test_file_path_access "$path_to_quiz_data"
+	    return_code=$?
+	    if [ $return_code -ne 0 ]
+	    then
+	    	msg="Quiz data not yet available. Check https://hub.docker.com/u/adebayo10k for a prototype image of this program. Exiting now..."
+	    	lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
+        fi
+
+    done
+}
+##############################
 # populates a globally accessible array with shuffled integer values
 function make_shuffled_num_range()
 {
@@ -364,27 +402,26 @@ function call_user_selected_review_week_builder()
 {
   # calls included file function to assemble data structures for the specific, user-selected quiz week
   #local quiz_week_choice="$1"
-
 	case $quiz_week_choice in
-		'1')	build_week_quizzes "$quiz_data_week_01"
+		'1')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_01]}"
 			;;
-		'2')	build_week_quizzes "$quiz_data_week_02"
+		'2')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_02]}"
 			;;
-		'3')	build_week_quizzes "$quiz_data_week_03"
+		'3')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_03]}"
 			;;
-		'4')	build_week_quizzes "$quiz_data_week_04"
+		'4')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_04]}"
 			;;
-		'5')	build_week_quizzes "$quiz_data_week_05"
+		'5')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_05]}"
 			;;
-		'6')	build_week_quizzes "$quiz_data_week_06"
+		'6')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_06]}"
 			;;
-		'7')	build_week_quizzes "$quiz_data_week_07"
+		'7')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_07]}"
 			;;
-		'8')	build_week_quizzes "$quiz_data_week_08"
+		'8')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_08]}"
 			;;
-		'9')	build_week_quizzes "$quiz_data_week_09"
+		'9')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_09]}"
 			;;
-		'10')	build_week_quizzes "$quiz_data_week_10"
+		'10')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_10]}"
 			;;
 		*)  
 	esac
