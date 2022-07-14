@@ -21,12 +21,20 @@ function build_week_quizzes()
 	# IMPORT YORUBA-REVIEW-CLASS ATTRIBUTES FROM JSON AS SINGLE STRINGS:
 	#===============================================
 
-	class_review_name_string=$(cat "$path_to_quiz_data" | jq -j '.classReviewName' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//")
+	class_review_name_string=$(cat "$path_to_quiz_data" | \
+    jq -j '.classReviewName' | \
+    sed "s/''/|/g" | \
+    sed "s/^'//" | \
+    sed "s/'$//")
 	#echo "class_review_name_string:"
 	#echo -e "$class_review_name_string"
 	#echo && echo
 
-	class_review_audio_dir_string=$(cat "$path_to_quiz_data" | jq -j '.classReviewAudioDir' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	class_review_audio_dir_string=$(cat "$path_to_quiz_data" | \
+    jq -j '.classReviewAudioDir' | \
+    sed "s/''/|/g" | \
+    sed "s/^'//" | \
+    sed "s/'$//") 
 	#echo "class_review_audio_dir_string:"
 	#echo -e "$class_review_audio_dir_string"
 	#echo && echo
@@ -34,7 +42,11 @@ function build_week_quizzes()
 	# IMPORT QUIZ KEY ATTRIBUTE FROM JSON AS A SINGLE IFS (where there are multiple quizzes) STRING:
 	#=============================================================
 
-	quiz_name_string=$(cat "$path_to_quiz_data" | jq -j '.classReviewQuizSet[] | .quizName' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	quiz_name_string=$(cat "$path_to_quiz_data" | \
+    jq -j '.classReviewQuizSet[] | .quizName' | \
+    sed "s/''/|/g" | \
+    sed "s/^'//" | \
+    sed "s/'$//") 
 	#echo "quiz_name_string:"
 	#echo -e "$quiz_name_string"
 	#echo && echo
@@ -72,22 +84,38 @@ function build_and_run_each_quiz
 	id="'${id}'"
 	#echo -e "unique id to FILTER from JSON: $id" 
 
-	quiz_type_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizType' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	quiz_type_string=$(cat "$path_to_quiz_data" | \
+    jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | 
+    select(.quizName==$quiz_id) | 
+    .quizType' | \
+    sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
 	#echo "quiz_type_string:"
 	#echo -e "$quiz_type_string"
 	#echo && echo
 
-    quiz_category_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizCategory' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//")
+    quiz_category_string=$(cat "$path_to_quiz_data" | \
+    jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | 
+    select(.quizName==$quiz_id) | 
+    .quizCategory' | \
+    sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//")
     #echo "quiz_category_string:"
     #echo -e "$quiz_category_string"
 	#echo && echo
 
-	quiz_play_sequence_default_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizPlaySequenceDefault' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	quiz_play_sequence_default_string=$(cat "$path_to_quiz_data" | \
+    jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | 
+    select(.quizName==$quiz_id) | 
+    .quizPlaySequenceDefault' | \
+    sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
 	#echo "quiz_play_sequence_default_string:"
 	#echo -e "$quiz_play_sequence_default_string"
 	#echo && echo
 
-	quiz_instructions_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizInstructions[]' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	quiz_instructions_string=$(cat "$path_to_quiz_data" | \
+    jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | 
+    select(.quizName==$quiz_id) | 
+    .quizInstructions[]' | \
+    sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
 	#echo "quiz_instructions_string:"
 	#echo -e "$quiz_instructions_string"
 	#echo && echo
@@ -113,7 +141,12 @@ function build_and_run_each_quiz
 	# english phrases
 	###########
 	## give string an IFS for array creation, having preserved spaced phrases
-	quiz_english_phrases_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizPhraseSet[] | .englishPhrase' | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	quiz_english_phrases_string=$(cat "$path_to_quiz_data" | \
+    jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | 
+    select(.quizName==$quiz_id) | 
+    .quizPhraseSet[] | 
+    .englishPhrase' | \
+    sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
 	#echo "quiz_english_phrases_string:"
 	#echo -e "$quiz_english_phrases_string"
 	#echo && echo
@@ -122,7 +155,12 @@ function build_and_run_each_quiz
 	# yoruba phrases
 	###########
 	## give string an IFS for array creation, having preserved spaced phrases
-	quiz_yoruba_phrases_string=$(cat "$path_to_quiz_data" | jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | select(.quizName==$quiz_id) | .quizPhraseSet[] | .yorubaPhrase'  | sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
+	quiz_yoruba_phrases_string=$(cat "$path_to_quiz_data" | \
+    jq -j --arg quiz_id "$id" '.classReviewQuizSet[] | 
+    select(.quizName==$quiz_id) | 
+    .quizPhraseSet[] | 
+    .yorubaPhrase'  | \
+    sed "s/''/|/g" | sed "s/^'//" | sed "s/'$//") 
 	#echo "quiz_yoruba_phrases_string:"
 	#echo -e "$quiz_yoruba_phrases_string"
 	#echo && echo
