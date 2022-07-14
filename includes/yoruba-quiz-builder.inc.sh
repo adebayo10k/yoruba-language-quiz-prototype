@@ -76,7 +76,8 @@ function build_week_quizzes()
 
 ##########################################################
 
-# NOTE: arrays seem more useful in BASH than long strings from jq
+# This function builds data structures for the selected quiz and calls function to run that quiz. 
+# NOTE: arrays seem more useful in BASH than long strings from jq.
 function build_and_run_each_quiz
 {
 	id="$1"	

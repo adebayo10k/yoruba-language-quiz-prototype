@@ -111,7 +111,7 @@ function main(){
 		
         call_user_selected_review_week_builder
 
-        # returns here when the chosen week of quizzes has finished
+        # returns here when the chosen week of quizzes has been built, run and finished
 
 	    echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
 	    echo "Press ENTER to continue..." && read # user acknowledges info
@@ -360,7 +360,6 @@ function get_user_player_count_choice()
 
     read num_of_players
     
-    # validate user input (TODO: separate these out)
     # NOTE: discovered that regex only need be single quoted when assigned to variable.
     if  [[ "$num_of_players" =~ ^[0-9]+$ ]] && \
     [ "$num_of_players" -ge "$min_players" ] && \
@@ -382,11 +381,10 @@ function get_user_quiz_week_choice()
 
     read quiz_week_num
     
-    # validate user input (TODO: separate these out)
     # NOTE: discovered that regex only need be single quoted when assigned to variable.
     if  [[ "$quiz_week_num" =~ ^[0-9]+$ ]] # && \
-    #[ "$num_of_players" -ge "$min_players" ] && \
-    # [ "$num_of_players" -le "$max_players"  ]  #
+    #[ "$quiz_week_num" -ge "$min_week_num" ] && \
+    # [ "$quiz_week_num" -le "$max_week_num"  ]  #
     then
       quiz_week_choice="$quiz_week_num"
     else
