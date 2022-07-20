@@ -60,32 +60,24 @@ function main(){
 	actual_host=`hostname`
 
 
-	num_of_players=1 # default value for quizzes to clear screen after every answer
-  min_players=1
-  max_players=4
-	num_of_responses_to_display="$num_of_players"
+	#num_of_players=1 # default value for quizzes to clear screen after every answer
+  #min_players=1
+  #max_players=4
+
+    dev_quiz_basenames=()
+
+
+	num_of_responses_to_display=1
 	quiz_length=
 	quiz_type=
 	quiz_play_sequence_default_string=
 	declare -a num_range_arr=()
-    quiz_week_choice=1 # default value for now
+    quiz_week_choice=
+  
 
 	declare -a current_english_phrases_list=()
 	declare -a current_yoruba_phrases_list=()
 	declare -A current_yoruba_translations
-
-    # JSON quiz data file locations
-    declare -A quiz_data_file_locations=(
-	    [quiz_data_week_01]="${command_dirname}/../app-data/review-class-week-01/quiz-week-01.json"
-	    #[quiz_data_week_02]="${command_dirname}/../app-data/review-class-week-02/quiz-week-02.json"
-	    #[quiz_data_week_03]="${command_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
- 	    [quiz_data_week_04]="${command_dirname}/../app-data/review-class-week-04/quiz-week-04.json"
- 	    #[quiz_data_week_05]="${command_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
-      #[quiz_data_week_06]="${command_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
-	    #[quiz_data_week_07]="${command_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
-	)
-
-	##############################
 	
 	##############################
 	# FUNCTION CALLS:
@@ -97,10 +89,9 @@ function main(){
 		## check program dependencies and requirements
 		lib10k_check_program_requirements "${program_dependencies[@]}"
 	fi
-	
+
 	# check the number of parameters to this program
 	lib10k_check_no_of_program_args
-
 	# controls where this program can be run, to avoid unforseen behaviour
 	lib10k_entry_test
 
@@ -109,80 +100,159 @@ function main(){
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################
 
-  # check that the JSON data files are available and readable
-  #check_quiz_data_exists
+    # check that the JSON data files are available and readable
+    get_quiz_names
 
 	# keep running quizzes until user says stop
 	while true
 	do
+	    #get_user_player_count_choice
 
-		get_user_player_count_choice
-    get_user_quiz_week_choice
-    # we now have all configuration instructions that we needed from user
-    call_user_selected_review_week_builder
-    # returns here when the chosen week of quizzes has been built, run and finished
-    echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
-    echo "Press ENTER to continue..." && read # user acknowledges info
+        get_user_quiz_week_choice
 
-		echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
+        get_quiz_data_file
 
-		read more_quizzing_response
+        exit 0
 
-		case $more_quizzing_response in
-			[yY])	echo && echo "Launching quizzes now..." && echo && sleep 2
-    		continue
-						;;
-			[nN])	echo
-						echo "Ok, see you next time!" && sleep 1
-						echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
-						exit 0
-						;;			
-			*) 	echo " Needed a Y or N...Quitting" && echo && sleep 1
-						echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
-						exit 0
-						;;
-		esac
+        # we now have all configuration instructions that we needed from user
+        #call_user_selected_review_week_builder
 
-	done
+        # returns here when the chosen week of quizzes has been built, run and finished
+        echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
+        echo "Press ENTER to continue..." && read # user acknowledges info
+
+	    	echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
+
+	    	read more_quizzing_response
+
+	    	case $more_quizzing_response in
+	    		[yY])	echo && echo "Launching quizzes now..." && echo && sleep 2
+        		continue
+	    					;;
+	    		[nN])	echo
+	    					echo "Ok, see you next time!" && sleep 1
+	    					echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
+	    					exit 0
+	    					;;			
+	    		*) 	echo " Needed a Y or N...Quitting" && echo && sleep 1
+	    					echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
+	    					exit 0
+	    					;;
+	    	esac
+
+	    done
 	
 } ## end main
 
-
-
-
-#######################################################################################
+##############################
 ####  FUNCTION DECLARATIONS  
-#######################################################################################
+##############################
 
-function check_quiz_data_exists()
-{
+function get_quiz_names() {
+    # 
+    if [ ${#dev_quiz_urls[@]} -gt 0 ]
+    then
+        for url in "${dev_quiz_urls[@]}"
+        do
+            # append an indexed array file basenames
+            dev_quiz_basenames+=( "${url##*'/'}" )      
+        done
+        for bn in "${dev_quiz_basenames[@]}"
+        do
+            echo "$bn"
+        done
+    else
+        msg="Quiz data not available. Nothing to do. Exiting now..."
+        lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
+    fi
 
-  ## GET THE FILENAMES FROM S3, OR SOMETHING LIKE THAT
+}
 
-    for path_to_quiz_data in "${!quiz_data_file_locations[@]}"
+##############################
+
+function get_user_quiz_week_choice() {
+    local quiz_num_selected="false"
+    echo -e "\033[33mEnter the NUMBER (eg. 2) of the quiz you want to try...\033[0m"
+
+    while [[ $quiz_num_selected =~ 'false' ]]
     do
+        bn_count=0
+        # list quiz files from the dev_quiz_basenames array
+        for bn in "${dev_quiz_basenames[@]}"
+        do
+            bn_count=$((bn_count + 1))
+            echo "$bn_count : $bn"
+        done
 
-        # if path_to_quiz_data not found, exit with error message/suggestion
-	    lib10k_test_file_path_valid_form "$path_to_quiz_data"
-	    return_code=$?
-	    if [ $return_code -ne 0 ]
-	    then
-	    	msg="Quiz data not yet available. Check https://hub.docker.com/u/adebayo10k for a prototype image of this program. Exiting now..."
-	    	lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
-        fi
-
-        # if path_to_quiz_data not readable, exit with error message/suggestion
-	    lib10k_test_file_path_access "$path_to_quiz_data"
-	    return_code=$?
-	    if [ $return_code -ne 0 ]
-	    then
-	    	msg="Quiz data not yet available. Check https://hub.docker.com/u/adebayo10k for a prototype image of this program. Exiting now..."
-	    	lib10k_exit_with_error "$E_UNEXPECTED_ARG_VALUE" "$msg"
-        fi
-
+        read user_choice_num
+    
+        # NOTE: discovered that regex only need be single quoted when assigned to variable.
+        if [[ "$user_choice_num" =~ ^[0-9]+$ ]] && \
+            [ "$user_choice_num" -ge 1 ] && \
+            [ "$user_choice_num" -le ${#dev_quiz_basenames[@]} ]
+        then
+            quiz_num_selected="true"
+            echo "Quiz Selected OK."
+        else
+            echo "No Quiz Selected. Try Again..."
+            continue
+        fi    
     done
 }
+
 ##############################
+
+function get_quiz_data_file() {
+
+    json_input_file="${command_dirname}/test-quiz-data-uc-wk04.json"
+    json_output_file="${command_dirname}/draft.json"
+
+    local curl_var=
+    
+    if [ touch "$json_input_file" ]
+    then
+        echo -n >"$json_output_file"
+    else
+        :
+        # can't write quiz JSON file, so exit program
+    fi
+
+
+     #curl_var="$(curl -s https://yoruba-quiz.s3.eu-west-2.amazonaws.com/test-quiz-data-uc-wk01.json 2>/dev/null)"
+     #curl_var="$(curl -s https://yoruba-quiz.s3.eu-west-2.amazonaws.com/test-quiz-data-uc-wk04.json 2>/dev/null)"
+
+     #curl_var="$(cat "$json_input_file")" 
+
+     [ $? -ne 0 ] && msg="cURL Failed. Exiting..." && echo "$msg" && exit 1 # && \
+     #lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg" \
+             # test the retrieved JSON value:
+
+    if [ -n "$curl_var" ] && echo $curl_var | grep '{' >/dev/null 2>&1 
+    then
+    	echo "JSON Downloaded OK."
+    else
+    	msg="Could not retrieve a valid JSON file. Exiting now..."
+       echo "$msg"; exit 1;
+    	#lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
+    fi
+    
+    for line in "$curl_var"
+    do
+       tmp_line="$(echo -e "$line")"
+       echo -e "$tmp_line" >> $json_output_file
+     done # end while
+    
+}
+
+
+
+
+
+
+
+##############################
+
+
 # populates a globally accessible array with shuffled integer values
 function make_shuffled_num_range()
 {
@@ -364,73 +434,53 @@ function enum_list()
 	done
 }
 
-##############################################################
-function get_user_player_count_choice() 
-{
-	echo -e "\033[33mHOW MANY QUIZ PLAYERS? ["${min_players}"-"${max_players}"].\033[0m"
+##############################
+##function get_user_player_count_choice() 
+##{
+##	echo -e "\033[33mHOW MANY QUIZ PLAYERS? ["${min_players}"-"${max_players}"].\033[0m"
+##
+##    read num_of_players
+##    
+##    # NOTE: discovered that regex only need be single quoted when assigned to variable.
+##    if  [[ "$num_of_players" =~ ^[0-9]+$ ]] && \
+##    [ "$num_of_players" -ge "$min_players" ] && \
+##    [ "$num_of_players" -le "$max_players"  ]  #
+##    then
+##      num_of_responses_to_display="$num_of_players"
+##    else
+##      ## exit with error code and message
+##      msg="The number of players you entered is bad. Exiting now..."
+##	  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
+##    fi
+##}
+##
 
-    read num_of_players
-    
-    # NOTE: discovered that regex only need be single quoted when assigned to variable.
-    if  [[ "$num_of_players" =~ ^[0-9]+$ ]] && \
-    [ "$num_of_players" -ge "$min_players" ] && \
-    [ "$num_of_players" -le "$max_players"  ]  #
-    then
-      num_of_responses_to_display="$num_of_players"
-    else
-      ## exit with error code and message
-      msg="The number of players you entered is bad. Exiting now..."
-	  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
-    fi
-}
+##############################
 
-##############################################################
-
-function get_user_quiz_week_choice()
-{
-    echo -e "\033[33mWHICH QUIZ WEEK?\033[0m"
-
-    read quiz_week_num
-    
-    # NOTE: discovered that regex only need be single quoted when assigned to variable.
-    if  [[ "$quiz_week_num" =~ ^[0-9]+$ ]] # && \
-    #[ "$quiz_week_num" -ge "$min_week_num" ] && \
-    # [ "$quiz_week_num" -le "$max_week_num"  ]  #
-    then
-      quiz_week_choice="$quiz_week_num"
-    else
-      ## exit with error code and message
-      msg="The number of players you entered is bad. Exiting now..."
-	  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
-    fi
-}
-
-##############################################################
-
-function call_user_selected_review_week_builder() 
-{
-  # calls included file function to assemble data structures for the specific, user-selected quiz week
-  #local quiz_week_choice="$1"
-	case $quiz_week_choice in
-		'1')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_01]}"
-			;;
-	#	'2')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_02]}"
-	#		;;
-	#	'3')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_03]}"
-	#		;;
-		'4')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_04]}"
-			;;
-	#	'5')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_05]}"
-	#		;;
-	#	'6')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_06]}"
-	#		;;
-	#	'7')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_07]}"
-	#		;;
-		*)  # NOTE: THIS SHOULD BE PART OF SOME WHILE LOOP
-	esac
-	
-}
-
-##############################################################
+##function call_user_selected_review_week_builder() 
+##{
+##  # calls included file function to assemble data structures for the specific, user-selected quiz week
+##  #local quiz_week_choice="$1"
+##	case $quiz_week_choice in
+##		'1')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_01]}"
+##			;;
+##	#	'2')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_02]}"
+##	#		;;
+##	#	'3')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_03]}"
+##	#		;;
+##		'4')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_04]}"
+##			;;
+##	#	'5')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_05]}"
+##	#		;;
+##	#	'6')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_06]}"
+##	#		;;
+##	#	'7')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_07]}"
+##	#		;;
+##		*)  # NOTE: THIS SHOULD BE PART OF SOME WHILE LOOP
+##	esac
+##	
+##}
+##
+##############################
 
 main "$@"; exit
