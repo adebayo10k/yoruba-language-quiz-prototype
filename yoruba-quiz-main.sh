@@ -2,12 +2,10 @@
 #: Title		:yoruba-quiz-main.sh
 #: Date			:2021-04-03
 #: Author		:adebayo10k
-#: Version		:
-#: Description	: script to help us practice our Yorùbá vocabulary. \ 
-#: Description	: a proof-of-concept quiz application for Yorùbá language learners
-#: Description	: prototype
-#: Options		:
-##
+#: Description	: Script to help us practice our Yorùbá vocabulary. 
+#: Description	: A proof-of-concept quiz application for Yorùbá language learners.
+#: Description	: Uses an AWS S3 bucket as quiz data source.
+#: Description	: Prototype.
 
 ## THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
 
@@ -15,15 +13,33 @@ command_fullpath="$(readlink -f $0)"
 command_basename="$(basename $command_fullpath)"
 command_dirname="$(dirname $command_fullpath)"
 
-for file in "${command_dirname}/shared-functions-library"/shared-bash-*
-do
-	source "$file"
-done
+# verify existence of library dependencies
+if [ -d "${command_dirname}/shared-functions-library" ] && \
+[ -n "$(ls ${command_dirname}/shared-functions-library | grep  'shared-bash-')" ]
+then
+	for file in "${command_dirname}/shared-functions-library"/shared-bash-*
+	do
+		source "$file"
+	done
+else
+	# return a non-zero exit code with native exit
+	echo "Required file not found. Returning non-zero exit code. Exiting now..."
+	exit 1
+fi
 
-for file in "${command_dirname}/includes"/*
-do
-	source "$file"
-done
+# verify existence of included dependencies
+if [ -d "${command_dirname}/includes" ] && \
+[ -n "$(ls ${command_dirname}/includes)" ]
+then
+	for file in "${command_dirname}/includes"/*
+	do
+		source "$file"
+	done
+else
+	# return a non-zero exit code with native exit
+	echo "Required file not found. Returning non-zero exit code. Exiting now..."
+	exit 1
+fi
 
 ## THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
 
@@ -33,7 +49,7 @@ function main(){
 	##############################
 	program_title="yoruba quiz prototype"
 	original_author="damola adebayo"
-	program_dependencies=("vi" "jq" "shuf" "seq")
+	program_dependencies=("vi" "jq" "shuf" "seq" "curl")
 
 	declare -i max_expected_no_of_program_parameters=0
 	declare -i min_expected_no_of_program_parameters=0
@@ -43,11 +59,10 @@ function main(){
 	declare -a authorised_host_list=()
 	actual_host=`hostname`
 
-	
 
 	num_of_players=1 # default value for quizzes to clear screen after every answer
-    min_players=1
-    max_players=4
+  min_players=1
+  max_players=4
 	num_of_responses_to_display="$num_of_players"
 	quiz_length=
 	quiz_type=
@@ -62,15 +77,12 @@ function main(){
     # JSON quiz data file locations
     declare -A quiz_data_file_locations=(
 	    [quiz_data_week_01]="${command_dirname}/../app-data/review-class-week-01/quiz-week-01.json"
-	    [quiz_data_week_02]="${command_dirname}/../app-data/review-class-week-02/quiz-week-02.json"
-	    [quiz_data_week_03]="${command_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
+	    #[quiz_data_week_02]="${command_dirname}/../app-data/review-class-week-02/quiz-week-02.json"
+	    #[quiz_data_week_03]="${command_dirname}/../app-data/review-class-week-03/quiz-week-03.json"
  	    [quiz_data_week_04]="${command_dirname}/../app-data/review-class-week-04/quiz-week-04.json"
- 	    [quiz_data_week_05]="${command_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
-        [quiz_data_week_06]="${command_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
-	    [quiz_data_week_07]="${command_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
-	    [quiz_data_week_08]="${command_dirname}/../app-data/review-class-week-08/quiz-week-08.json"
- 	    [quiz_data_week_09]="${command_dirname}/../app-data/review-class-week-09/quiz-week-09.json"
- 	    [quiz_data_week_10]="${command_dirname}/../app-data/review-class-week-10/quiz-week-10.json"
+ 	    #[quiz_data_week_05]="${command_dirname}/../app-data/review-class-week-05/quiz-week-05.json"
+      #[quiz_data_week_06]="${command_dirname}/../app-data/review-class-week-06/quiz-week-06.json"
+	    #[quiz_data_week_07]="${command_dirname}/../app-data/review-class-week-07/quiz-week-07.json"
 	)
 
 	##############################
@@ -97,24 +109,20 @@ function main(){
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################
 
-    # check that the JSON data files are available and readable
-    check_quiz_data_exists
+  # check that the JSON data files are available and readable
+  #check_quiz_data_exists
 
 	# keep running quizzes until user says stop
 	while true
 	do
 
 		get_user_player_count_choice
-        get_user_quiz_week_choice
-   
-        # we now have all configuration instructions that we needed from user
-		
-        call_user_selected_review_week_builder
-
-        # returns here when the chosen week of quizzes has been built, run and finished
-
-	    echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
-	    echo "Press ENTER to continue..." && read # user acknowledges info
+    get_user_quiz_week_choice
+    # we now have all configuration instructions that we needed from user
+    call_user_selected_review_week_builder
+    # returns here when the chosen week of quizzes has been built, run and finished
+    echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
+    echo "Press ENTER to continue..." && read # user acknowledges info
 
 		echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
 
@@ -148,6 +156,9 @@ function main(){
 
 function check_quiz_data_exists()
 {
+
+  ## GET THE FILENAMES FROM S3, OR SOMETHING LIKE THAT
+
     for path_to_quiz_data in "${!quiz_data_file_locations[@]}"
     do
 
@@ -403,25 +414,19 @@ function call_user_selected_review_week_builder()
 	case $quiz_week_choice in
 		'1')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_01]}"
 			;;
-		'2')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_02]}"
-			;;
-		'3')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_03]}"
-			;;
+	#	'2')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_02]}"
+	#		;;
+	#	'3')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_03]}"
+	#		;;
 		'4')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_04]}"
 			;;
-		'5')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_05]}"
-			;;
-		'6')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_06]}"
-			;;
-		'7')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_07]}"
-			;;
-		'8')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_08]}"
-			;;
-		'9')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_09]}"
-			;;
-		'10')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_10]}"
-			;;
-		*)  
+	#	'5')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_05]}"
+	#		;;
+	#	'6')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_06]}"
+	#		;;
+	#	'7')	build_week_quizzes "${quiz_data_file_locations[quiz_data_week_07]}"
+	#		;;
+		*)  # NOTE: THIS SHOULD BE PART OF SOME WHILE LOOP
 	esac
 	
 }
