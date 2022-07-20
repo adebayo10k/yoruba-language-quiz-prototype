@@ -64,7 +64,13 @@ function main(){
   #min_players=1
   #max_players=4
 
-    dev_quiz_basenames=()
+    
+
+    user_quiz_choice_num=
+
+    remote_quiz_file_url=
+    local_quiz_file=
+    quiz_data=
 
 
 	num_of_responses_to_display=1
@@ -106,9 +112,9 @@ function main(){
 	# keep running quizzes until user says stop
 	while true
 	do
-	    #get_user_player_count_choice
 
-        get_user_quiz_week_choice
+        get_user_quiz_choice
+        #echo "user_quiz_choice_num : $user_quiz_choice_num"
 
         get_quiz_data_file
 
@@ -121,7 +127,7 @@ function main(){
         echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
         echo "Press ENTER to continue..." && read # user acknowledges info
 
-	    	echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
+	    echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
 
 	    	read more_quizzing_response
 
@@ -150,46 +156,33 @@ function main(){
 
 function get_quiz_names() {
     # 
-    if [ ${#dev_quiz_urls[@]} -gt 0 ]
-    then
-        for url in "${dev_quiz_urls[@]}"
-        do
-            # append an indexed array file basenames
-            dev_quiz_basenames+=( "${url##*'/'}" )      
-        done
-        for bn in "${dev_quiz_basenames[@]}"
-        do
-            echo "$bn"
-        done
-    else
-        msg="Quiz data not available. Nothing to do. Exiting now..."
-        lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
-    fi
-
+    [ ${#dev_quiz_urls[@]} -gt 0 ] || \
+    msg="Quiz data not available. Nothing to do. Exiting now..." || \
+    lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
 }
 
 ##############################
+function get_user_quiz_choice() {
 
-function get_user_quiz_week_choice() {
     local quiz_num_selected="false"
     echo -e "\033[33mEnter the NUMBER (eg. 2) of the quiz you want to try...\033[0m"
 
     while [[ $quiz_num_selected =~ 'false' ]]
     do
         bn_count=0
-        # list quiz files from the dev_quiz_basenames array
-        for bn in "${dev_quiz_basenames[@]}"
+        # list quiz files from the dev_quiz_urls array
+        for url in "${dev_quiz_urls[@]}"
         do
             bn_count=$((bn_count + 1))
-            echo "$bn_count : $bn"
+            echo "$bn_count : ${url##*/}"
         done
 
-        read user_choice_num
+        read user_quiz_choice_num
     
         # NOTE: discovered that regex only need be single quoted when assigned to variable.
-        if [[ "$user_choice_num" =~ ^[0-9]+$ ]] && \
-            [ "$user_choice_num" -ge 1 ] && \
-            [ "$user_choice_num" -le ${#dev_quiz_basenames[@]} ]
+        if [[ "$user_quiz_choice_num" =~ ^[0-9]+$ ]] && \
+            [ "$user_quiz_choice_num" -ge 1 ] && \
+            [ "$user_quiz_choice_num" -le ${#dev_quiz_urls[@]} ]
         then
             quiz_num_selected="true"
             echo "Quiz Selected OK."
@@ -201,61 +194,83 @@ function get_user_quiz_week_choice() {
 }
 
 ##############################
-
 function get_quiz_data_file() {
 
-    json_input_file="${command_dirname}/test-quiz-data-uc-wk04.json"
-    json_output_file="${command_dirname}/draft.json"
+    create_local_quiz_file
 
-    local curl_var=
-    
-    if [ touch "$json_input_file" ]
+    request_quiz_data
+   
+    write_decoded_quiz_data    
+}
+
+##############################
+function create_local_quiz_file() {
+
+    # assign  a value to remote_quiz_file_url (json input file)
+    # ( using user_quiz_choice_num on ${dev_quiz_urls[@]})
+    remote_quiz_file_url="${dev_quiz_urls[${user_quiz_choice_num}-1]}"
+    echo "remote_quiz_file_url: $remote_quiz_file_url"
+
+    # assign value to local_quiz_file (json conversion output file)
+    # derived from the remote_quiz_file_url
+    local_quiz_file="${command_dirname}/data/${remote_quiz_file_url##*/}"
+    echo "local_quiz_file: $local_quiz_file"
+
+    # touch the local_quiz_file
+    if mkdir -p "${command_dirname}/data" && touch "$local_quiz_file"
     then
-        echo -n >"$json_output_file"
+        echo -n >"$local_quiz_file"
     else
-        :
-        # can't write quiz JSON file, so exit program
+        # can't write local JSON quiz file, so exit program
+        msg="Could not write local JSON quiz file. Exiting now..."
+        lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
     fi
+}
 
+##############################
+function request_quiz_data() {
 
-     #curl_var="$(curl -s https://yoruba-quiz.s3.eu-west-2.amazonaws.com/test-quiz-data-uc-wk01.json 2>/dev/null)"
-     #curl_var="$(curl -s https://yoruba-quiz.s3.eu-west-2.amazonaws.com/test-quiz-data-uc-wk04.json 2>/dev/null)"
+    #local quiz_data=    
+    quiz_data="$(cat "$remote_quiz_file_url")" 
+    #quiz_data="$(curl -s https://yoruba-quiz.s3.eu-west-2.amazonaws.com/test-quiz-data-uc-wk01.json 2>/dev/null)"
+    #quiz_data="$(curl -s https://yoruba-quiz.s3.eu-west-2.amazonaws.com/test-quiz-data-uc-wk04.json 2>/dev/null)"
 
-     #curl_var="$(cat "$json_input_file")" 
+    # Data transfer successful?
+    [ $? -ne 0 ] && msg="cURL Failed. Exiting..." && \
+    lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg" || \
+    echo "cURL Client Succeeded."
 
-     [ $? -ne 0 ] && msg="cURL Failed. Exiting..." && echo "$msg" && exit 1 # && \
-     #lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg" \
-             # test the retrieved JSON value:
-
-    if [ -n "$curl_var" ] && echo $curl_var | grep '{' >/dev/null 2>&1 
+    # JSON-like data received?
+    if [ -n "$quiz_data" ] && echo $quiz_data | grep '{' >/dev/null 2>&1 
     then
     	echo "JSON Downloaded OK."
     else
     	msg="Could not retrieve a valid JSON file. Exiting now..."
-       echo "$msg"; exit 1;
-    	#lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
+        lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
     fi
-    
-    for line in "$curl_var"
-    do
-       tmp_line="$(echo -e "$line")"
-       echo -e "$tmp_line" >> $json_output_file
-     done # end while
-    
 }
 
+##############################
+function write_decoded_quiz_data() {
 
-
-
-
-
+    local tmp_line
+    # write decoded quiz data to the local quiz file
+    for line in "$quiz_data"
+    do
+       tmp_line="$(echo -e "$line")"
+       echo -e "$tmp_line" >> $local_quiz_file
+     done # end while
+}
 
 ##############################
 
 
+
+
+
 # populates a globally accessible array with shuffled integer values
-function make_shuffled_num_range()
-{
+function make_shuffled_num_range() {
+
 	lower_limit=$1 # array start index
 	upper_limit=$2 # (array size - 1) is passed in
 
