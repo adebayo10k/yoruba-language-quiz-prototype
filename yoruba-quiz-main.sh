@@ -59,19 +59,11 @@ function main(){
 	declare -a authorised_host_list=()
 	actual_host=`hostname`
 
-
-	#num_of_players=1 # default value for quizzes to clear screen after every answer
-  #min_players=1
-  #max_players=4
-
-    
-
     user_quiz_choice_num=
 
     remote_quiz_file_url=
     local_quiz_file=
     quiz_data=
-
 
 	num_of_responses_to_display=1
 	quiz_length=
@@ -79,8 +71,7 @@ function main(){
 	quiz_play_sequence_default_string=
 	declare -a num_range_arr=()
     quiz_week_choice=
-  
-
+ 
 	declare -a current_english_phrases_list=()
 	declare -a current_yoruba_phrases_list=()
 	declare -A current_yoruba_translations
@@ -101,7 +92,6 @@ function main(){
 	# controls where this program can be run, to avoid unforseen behaviour
 	lib10k_entry_test
 
-
 	##############################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################
@@ -109,45 +99,25 @@ function main(){
     # check that the JSON data files are available and readable
     get_quiz_names
 
-	# keep running quizzes until user says stop
+	# Keep running quizzes until user says stop.
 	while true
 	do
-
         get_user_quiz_choice
-        #echo "user_quiz_choice_num : $user_quiz_choice_num"
-
+        #echo "user_quiz_choice_num : $user_quiz_choice_num"        
+        #
         get_quiz_data_file
+        #pause here. see if this data is useful to user. if so, pause to allow read
+        echo && echo "Quiz data Successfully Transmitted? Press Enter to continue..."
+        read
 
-        exit 0
-
-        # we now have all configuration instructions that we needed from user
-        #call_user_selected_review_week_builder
-
-        # returns here when the chosen week of quizzes has been built, run and finished
-        echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
-        echo "Press ENTER to continue..." && read # user acknowledges info
-
-	    echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
-
-	    	read more_quizzing_response
-
-	    	case $more_quizzing_response in
-	    		[yY])	echo && echo "Launching quizzes now..." && echo && sleep 2
-        		continue
-	    					;;
-	    		[nN])	echo
-	    					echo "Ok, see you next time!" && sleep 1
-	    					echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
-	    					exit 0
-	    					;;			
-	    		*) 	echo " Needed a Y or N...Quitting" && echo && sleep 1
-	    					echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
-	    					exit 0
-	    					;;
-	    	esac
-
-	    done
-	
+        build_quiz "$local_quiz_file"
+	    #ask_quiz_questions
+        run_quiz
+        #
+        get_user_continue_response
+        [ $? -eq 1994 ] && echo && \
+        echo "yorubasystems.com" && echo && sleep 2
+	done	
 } ## end main
 
 ##############################
@@ -165,6 +135,7 @@ function get_quiz_names() {
 function get_user_quiz_choice() {
 
     local quiz_num_selected="false"
+    echo && \
     echo -e "\033[33mEnter the NUMBER (eg. 2) of the quiz you want to try...\033[0m"
 
     while [[ $quiz_num_selected =~ 'false' ]]
@@ -196,15 +167,15 @@ function get_user_quiz_choice() {
 ##############################
 function get_quiz_data_file() {
 
-    # assign  a value to remote_quiz_file_url (json input file)
-    # ( using user_quiz_choice_num on ${dev_quiz_urls[@]})
+    # assign  a value to remote_quiz_file_url
+    # using user_quiz_choice_num on ${dev_quiz_urls[@]})
     remote_quiz_file_url="${dev_quiz_urls[${user_quiz_choice_num}-1]}"
-    echo "remote_quiz_file_url: $remote_quiz_file_url"
+    echo "remote_quiz_file_url: "; echo "$remote_quiz_file_url"
 
-    # assign value to local_quiz_file (json conversion output file)
+    # assign value to local_quiz_file
     # derived from the remote_quiz_file_url
     local_quiz_file="${command_dirname}/data/${remote_quiz_file_url##*/}"
-    echo "local_quiz_file: $local_quiz_file"
+    echo "local_quiz_file: "; echo "$local_quiz_file"
 
     # if local_quiz_file already exists, then no need to fetch it down again.
     if [ -f "$local_quiz_file" ] && [ -r "$local_quiz_file" ]
@@ -276,38 +247,8 @@ function write_decoded_quiz_data() {
 
 ##############################
 
-
-
-
-
-# populates a globally accessible array with shuffled integer values
-function make_shuffled_num_range() {
-
-	lower_limit=$1 # array start index
-	upper_limit=$2 # (array size - 1) is passed in
-
-	num_range_arr=()	# reset this global variable
-	for index in "$(shuf -i "$1"-"$2")"
-	do
-		num_range_arr+=("${index}") # append an indexed array of shuffled numbers
-	done
-}
-##############################
-# populates a globally accessible array with ordered, sequenced integer values
-function make_ordered_num_range()
-{
-	lower_limit=$1 # array start index
-	upper_limit=$2 # (array size - 1) is passed in
-
-	num_range_arr=()	# reset this global variable
-	for index in "$(seq "$lower_limit" "$upper_limit")"
-	do
-		num_range_arr+=("${index}") # append an indexed array of sequenced numbers
-	done
-}
-##############################
 # iterate over num_range_arr numbers array to select questions in the global current quiz
-function ask_quiz_questions()
+function run_quiz()
 {
     clear # clear console before showing new quiz information
 
@@ -351,7 +292,6 @@ function ask_quiz_questions()
 	done
 
 	echo "Press ENTER to continue..." && read # user acknowledges info
-
 	
 	# create a number sequence to 'pilot' the quiz order
 	if [[ "$quiz_play_sequence_default_string" = 'shuffled' ]]
@@ -371,8 +311,7 @@ function ask_quiz_questions()
 	is_first_quiz_question='true'
 
 	for elem in ${num_range_arr[@]}
-	do
-		
+	do		
 		# always clear screen before first quiz question
 		if [ "$is_first_quiz_question" = 'true' ]
 		then
@@ -406,19 +345,43 @@ function ask_quiz_questions()
 		read	# wait for user to acknowledge answer
 
 	done
-
 }
 
 ##############################
+# populates a globally accessible array with shuffled integer values
+function make_shuffled_num_range() {
+
+	lower_limit=$1 # array start index
+	upper_limit=$2 # (array size - 1) is passed in
+
+	num_range_arr=()	# reset this global variable
+	for index in "$(shuf -i "$1"-"$2")"
+	do
+		num_range_arr+=("${index}") # append an indexed array of shuffled numbers
+	done
+}
+##############################
+# populates a globally accessible array with ordered, sequenced integer values
+function make_ordered_num_range() {
+	lower_limit=$1 # array start index
+	upper_limit=$2 # (array size - 1) is passed in
+
+	num_range_arr=()	# reset this global variable
+	for index in "$(seq "$lower_limit" "$upper_limit")"
+	do
+		num_range_arr+=("${index}") # append an indexed array of sequenced numbers
+	done
+}
+##############################
 # vocabulary questions wait for user to respond before displaying answer
-function serve_vocabulary_question() 
-{
+function serve_vocabulary_question() {
 	num=$1
 
 	eng_word="${current_english_phrases_list[$num]}"
     # -e because some english phrases include Yoruba names
-	echo -e "		$eng_word" && echo 
-    echo "Press ENTER to see translation..." && read # wait for user to answer
+	echo -e "		$eng_word" && echo
+    echo "1. Type your answer (Optional)." 
+    echo "2. Press ENTER to see translation..." && read # wait for user to answer
 	#read	# wait for user to answer
 
 	# if translation is a colon separated list, print a listing
@@ -435,8 +398,7 @@ function serve_vocabulary_question()
 
 # oral questions just serve a series of phrases, with no specific answer given
 # if quiz type is oral, just iterate over as a list
-function serve_oral_question() 
-{
+function serve_oral_question() {
 	num=$1
 	# if question is a colon separated lines, print a listing
 	yoruba_oral_question="${current_yoruba_oral_questions[$num]}"
@@ -449,9 +411,8 @@ function serve_oral_question()
 		echo -e "		${yoruba_oral_question}"
 	fi
 }
-
-function enum_list()
-{
+##############################
+function enum_list() {
 	list=$1 #
 	while [ ${#list} -gt 0 ]
 	do
@@ -462,52 +423,31 @@ function enum_list()
 }
 
 ##############################
-##function get_user_player_count_choice() 
-##{
-##	echo -e "\033[33mHOW MANY QUIZ PLAYERS? ["${min_players}"-"${max_players}"].\033[0m"
-##
-##    read num_of_players
-##    
-##    # NOTE: discovered that regex only need be single quoted when assigned to variable.
-##    if  [[ "$num_of_players" =~ ^[0-9]+$ ]] && \
-##    [ "$num_of_players" -ge "$min_players" ] && \
-##    [ "$num_of_players" -le "$max_players"  ]  #
-##    then
-##      num_of_responses_to_display="$num_of_players"
-##    else
-##      ## exit with error code and message
-##      msg="The number of players you entered is bad. Exiting now..."
-##	  lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
-##    fi
-##}
-##
+function get_user_continue_response() {
+
+    echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
+    echo "Press ENTER to continue..." && read # user acknowledges info
+    echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
+    read more_quizzing_response
+
+    case $more_quizzing_response in
+    	[yY])	echo && echo "Launching quizzes now..." && echo && sleep 2
+       	            #continue
+                    response=1994
+    				;;
+    	[nN])	echo
+    				echo "Ok, see you next time!" && sleep 1
+    				echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
+    				exit 0
+    				;;			
+    	*) 	echo " Needed a Y or N...Quitting" && echo && sleep 1
+    				echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
+    				exit 0
+    				;;
+    esac
+
+    return "$response"
+}
 
 ##############################
-
-##function call_user_selected_review_week_builder() 
-##{
-##  # calls included file function to assemble data structures for the specific, user-selected quiz week
-##  #local quiz_week_choice="$1"
-##	case $quiz_week_choice in
-##		'1')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_01]}"
-##			;;
-##	#	'2')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_02]}"
-##	#		;;
-##	#	'3')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_03]}"
-##	#		;;
-##		'4')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_04]}"
-##			;;
-##	#	'5')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_05]}"
-##	#		;;
-##	#	'6')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_06]}"
-##	#		;;
-##	#	'7')	build_week_quizzes "${dev_quiz_urls[quiz_data_week_07]}"
-##	#		;;
-##		*)  # NOTE: THIS SHOULD BE PART OF SOME WHILE LOOP
-##	esac
-##	
-##}
-##
-##############################
-
 main "$@"; exit

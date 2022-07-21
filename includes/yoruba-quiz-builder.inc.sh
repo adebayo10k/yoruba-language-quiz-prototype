@@ -3,7 +3,7 @@
 # this function imports the json quiz week data and then structures
 # it into the arrays needed by the main quiz execution function
 
-function build_week_quizzes() 
+function build_quiz() 
 {
 	local path_to_quiz_data="$1"
 
@@ -202,10 +202,4 @@ function build_and_run_each_quiz
 
 	# set quiz_length variable for later use
 	quiz_length="${#current_english_phrases_list[@]}"
-
-    #read # a pause so we can read the debug output
-
-	# run the actual quiz using our current quiz data
-	ask_quiz_questions
-
 }
