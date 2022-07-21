@@ -96,27 +96,29 @@ function main(){
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################
 
-	# CALLS TO FUNCTIONS DECLARED IN setup.inc.sh
-	#==========================
-
-    # check that the JSON data files are available and readable
-    get_quiz_names
+    # check that we have a reference to at least one JSON data file.
+    check_for_data_urls
 
 	# Keep running quizzes until user says stop.
 	while true
 	do
+        # CALLS TO FUNCTIONS DECLARED IN get-quiz-data.inc.sh
+	    #==========================
         get_user_quiz_choice
-        #echo "user_quiz_choice_num : $user_quiz_choice_num"        
-        #
         get_quiz_data_file
         #pause here. see if this data is useful to user. if so, pause to allow read
         echo && echo "Quiz data available. Press Enter to continue..."
         read
 
+        # CALLS TO FUNCTIONS DECLARED IN build-quiz.inc.sh
+	    #==========================
         build_quiz "$local_quiz_file"
-	    #ask_quiz_questions
+
+        # CALLS TO FUNCTIONS DECLARED IN run-quiz.inc.sh
+	    #==========================
         run_quiz
-        #
+
+        # give user option to continue playing or end program
         get_user_continue_response
         echo "yorubasystems.com" && echo && sleep 2
 	done	
@@ -126,302 +128,11 @@ function main(){
 ####  FUNCTION DECLARATIONS  
 ##############################
 
-function get_quiz_names() {
+function check_for_data_urls() {
     # 
     [ ${#dev_quiz_urls[@]} -gt 0 ] || \
     msg="Quiz data not available. Nothing to do. Exiting now..." || \
     lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
-}
-
-##############################
-function get_user_quiz_choice() {
-
-    local quiz_num_selected="false"
-    echo && \
-    echo -e "\033[33mEnter the NUMBER (eg. 2) of the quiz you want to try...\033[0m"
-
-    while [[ $quiz_num_selected =~ 'false' ]]
-    do
-        bn_count=0
-        # list quiz files from the dev_quiz_urls array
-        for url in "${dev_quiz_urls[@]}"
-        do
-            bn_count=$((bn_count + 1))
-            echo "$bn_count : ${url##*/}"
-        done
-
-        read user_quiz_choice_num
-    
-        # NOTE: discovered that regex only need be single quoted when assigned to variable.
-        if [[ "$user_quiz_choice_num" =~ ^[0-9]+$ ]] && \
-            [ "$user_quiz_choice_num" -ge 1 ] && \
-            [ "$user_quiz_choice_num" -le ${#dev_quiz_urls[@]} ]
-        then
-            quiz_num_selected="true"
-            echo "Quiz Selected OK."
-        else
-            echo "No Quiz Selected. Try Again..."
-            continue
-        fi    
-    done
-}
-
-##############################
-function get_quiz_data_file() {
-
-    # assign  a value to remote_quiz_file_url
-    # using user_quiz_choice_num on ${dev_quiz_urls[@]})
-    remote_quiz_file_url="${dev_quiz_urls[${user_quiz_choice_num}-1]}"
-    echo "remote_quiz_file_url: "; echo "$remote_quiz_file_url"
-
-    # assign value to local_quiz_file
-    # derived from the remote_quiz_file_url
-    local_quiz_file="${command_dirname}/data/${remote_quiz_file_url##*/}"
-    echo "local_quiz_file: "; echo "$local_quiz_file"
-
-    # if local_quiz_file already exists, and is not empty, then no need to fetch it down again.
-    local_quiz_file_line_count=$(wc -l "$local_quiz_file" 2>/dev/null | sed 's/[^0-9]//g')
-    if [ -f "$local_quiz_file" ] && \
-    [ -r "$local_quiz_file" ] && \
-    [ $local_quiz_file_line_count -gt 30 ] # 30 is arbitrary minimum for a 'good file'
-    then
-        # ..
-        echo "Requested quiz file already exists locally OK."
-    else
-        create_data_dirs
-
-        request_quiz_data
-           
-        # once a new local quiz file is written, make if ro \
-        # so that it can be used again in future, unchanged
-        write_decoded_quiz_data && chmod 440 "$local_quiz_file" && \
-        echo "Local quiz data file created OK" || \
-        msg="Could not write local JSON quiz file. Exiting now..." || \
-        lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
-    fi    
-}
-
-##############################
-function create_data_dirs() {    
-
-    # then create touch the local_quiz_file
-    if mkdir -p "${command_dirname}/data" && touch "$local_quiz_file"
-    then
-        echo -n >"$local_quiz_file"
-    else
-        # can't write local JSON quiz file, so exit program
-        msg="Could not write local JSON quiz file. Exiting now..."
-        lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
-    fi
-}
-
-##############################
-function request_quiz_data() {
-    #quiz_data="$(cat "$remote_quiz_file_url")" 
-    quiz_data="$(curl -s "$remote_quiz_file_url" 2>/dev/null)"
-
-    # Data transfer successful?
-    [ $? -ne 0 ] && msg="cURL Failed. Exiting..." && \
-    lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg" || \
-    echo "cURL Client Succeeded."
-
-    # JSON-like data received?
-    if [ -n "$quiz_data" ] && echo $quiz_data | grep '{' >/dev/null 2>&1 
-    then
-    	echo "JSON Downloaded OK."
-    else
-    	msg="Could not retrieve a valid JSON file. Exiting now..."
-        lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
-    fi
-}
-
-##############################
-function write_decoded_quiz_data() {
-
-    local tmp_line
-    # write decoded quiz data to the local quiz file
-    for line in "$quiz_data"
-    do
-       tmp_line="$(echo -e "$line")"
-       echo -e "$tmp_line" >> $local_quiz_file
-     done # end while
-}
-
-##############################
-
-# iterate over num_range_arr numbers array to select questions in the global current quiz
-function run_quiz()
-{
-    clear # clear console before showing new quiz information
-
-    # display:
-    # quiz name (unique)
-    # quiz size (number of questions)
-    # quiz play sequence (ordered or shuffled)
-    # quiz content (a preview)
-    # quiz instructions 
-
-	# display quiz theme (or name) and instructions
-    echo "quiz theme (or name):"
-    echo -e "${quiz_category_string}"
-    echo
-
-    # quiz size (number of questions)
-    echo "$quiz_length questions"
-    echo
-
-    # quiz play sequence (ordered or shuffled)
-    echo "quiz questions sequence (ordered or shuffled):"
-	echo -e "$quiz_play_sequence_default_string"
-	echo
-
-    # quiz content (a preview)
-    echo "quiz_english_phrases_string:"
-	echo -e "$quiz_english_phrases_string"
-	echo && echo
-
-    echo "quiz_yoruba_phrases_string:"
-	echo -e "$quiz_yoruba_phrases_string"
-	echo && echo
-
-    echo "Press ENTER to continue..." && read # user acknowledges info
-    clear
-
-    # quiz instructions 
-	for line in "${quiz_instructions_array[@]}"
-	do
-		echo -e "$line"
-	done
-
-	echo "Press ENTER to continue..." && read # user acknowledges info
-	
-	# create a number sequence to 'pilot' the quiz order
-	if [[ "$quiz_play_sequence_default_string" = 'shuffled' ]]
-	then
-		make_shuffled_num_range 0 "$(( ${#current_english_phrases_list[@]} - 1 ))"
-	elif [[ "$quiz_play_sequence_default_string" = 'ordered' ]]
-	then
-		make_ordered_num_range 0 "$(( ${#current_english_phrases_list[@]} - 1 ))"
-	else
-		## exit with error code and message
-        msg="quiz play sequence not set. Exiting now..."
-		lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
-	fi
-
-	# initialise before quiz starts
-	num_of_responses_showing=0 
-	is_first_quiz_question='true'
-
-	for elem in ${num_range_arr[@]}
-	do		
-		# always clear screen before first quiz question
-		if [ "$is_first_quiz_question" = 'true' ]
-		then
-			clear
-			is_first_quiz_question='false'
-		fi
-
-		# then only clear when num_of_responses_showing >= num_of_responses_to_display
-		if [ "$num_of_responses_showing" -ge "$num_of_responses_to_display" ]
-		then
-			clear
-			num_of_responses_showing=0 # reset
-		fi
-		
-		echo && echo && echo # for positioning and display of next console output	only	
-
-		# handle quiz question serve method based on the quiz_type_string
-		if [[ "$quiz_type_string" = 'vocabulary' ]]
-		then
-			serve_vocabulary_question "$elem"
-		elif [[ "$quiz_type_string" = 'oral' ]]
-		then
-			serve_oral_question "$elem"
-		else
-			## exit with error code and message
-            msg="quiz type not set. Exiting now..."
-            lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"
-		fi
-
-		num_of_responses_showing=$((num_of_responses_showing + 1))
-		read	# wait for user to acknowledge answer
-
-	done
-}
-
-##############################
-# populates a globally accessible array with shuffled integer values
-function make_shuffled_num_range() {
-
-	lower_limit=$1 # array start index
-	upper_limit=$2 # (array size - 1) is passed in
-
-	num_range_arr=()	# reset this global variable
-	for index in "$(shuf -i "$1"-"$2")"
-	do
-		num_range_arr+=("${index}") # append an indexed array of shuffled numbers
-	done
-}
-##############################
-# populates a globally accessible array with ordered, sequenced integer values
-function make_ordered_num_range() {
-	lower_limit=$1 # array start index
-	upper_limit=$2 # (array size - 1) is passed in
-
-	num_range_arr=()	# reset this global variable
-	for index in "$(seq "$lower_limit" "$upper_limit")"
-	do
-		num_range_arr+=("${index}") # append an indexed array of sequenced numbers
-	done
-}
-##############################
-# vocabulary questions wait for user to respond before displaying answer
-function serve_vocabulary_question() {
-	num=$1
-
-	eng_word="${current_english_phrases_list[$num]}"
-    # -e because some english phrases include Yoruba names
-	echo -e "		$eng_word" && echo
-    echo "1. Type your answer (Optional)." 
-    echo "2. Press ENTER to see translation..." && read # wait for user to answer
-	#read	# wait for user to answer
-
-	# if translation is a colon separated list, print a listing
-	translatedString="${current_yoruba_translations[$eng_word]}"
-	echo "$translatedString" | grep -q ':'
-	isList=$?
-	if [ $isList -eq 0 ]	# 0 means colon delimited translation lines/list was found
-	then
-		enum_list "$translatedString"
-	else
-		echo -e "		${translatedString}"
-	fi
-}
-
-# oral questions just serve a series of phrases, with no specific answer given
-# if quiz type is oral, just iterate over as a list
-function serve_oral_question() {
-	num=$1
-	# if question is a colon separated lines, print a listing
-	yoruba_oral_question="${current_yoruba_oral_questions[$num]}"
-	echo "$yoruba_oral_question" | grep -q ':'
-	isList=$?
-	if [ $isList -eq 0 ]	# 0 means colon delimited oral question lines are present
-	then
-		enum_list "$yoruba_oral_question"		
-	else
-		echo -e "		${yoruba_oral_question}"
-	fi
-}
-##############################
-function enum_list() {
-	list=$1 #
-	while [ ${#list} -gt 0 ]
-	do
-		item=${list%%':'*}
-		list=${list#"${item}:"} 
-		echo -e "		$item" # 
-	done
 }
 
 ##############################
