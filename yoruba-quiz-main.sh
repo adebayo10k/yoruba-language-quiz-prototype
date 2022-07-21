@@ -196,16 +196,6 @@ function get_user_quiz_choice() {
 ##############################
 function get_quiz_data_file() {
 
-    create_local_quiz_file
-
-    request_quiz_data
-   
-    write_decoded_quiz_data    
-}
-
-##############################
-function create_local_quiz_file() {
-
     # assign  a value to remote_quiz_file_url (json input file)
     # ( using user_quiz_choice_num on ${dev_quiz_urls[@]})
     remote_quiz_file_url="${dev_quiz_urls[${user_quiz_choice_num}-1]}"
@@ -216,7 +206,29 @@ function create_local_quiz_file() {
     local_quiz_file="${command_dirname}/data/${remote_quiz_file_url##*/}"
     echo "local_quiz_file: $local_quiz_file"
 
-    # touch the local_quiz_file
+    # if local_quiz_file already exists, then no need to fetch it down again.
+    if [ -f "$local_quiz_file" ] && [ -r "$local_quiz_file" ]
+    then
+        # ..
+        echo "Requested quiz file aleady exists locally OK."
+    else
+        create_data_dirs
+
+        request_quiz_data
+           
+        # once a new local quiz file is written, make if ro \
+        # so that it can be used again in future, unchanged
+        write_decoded_quiz_data && chmod 440 "$local_quiz_file" && \
+        echo "Local quiz data file created OK" || \
+        msg="Could not write local JSON quiz file. Exiting now..." || \
+        lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
+    fi    
+}
+
+##############################
+function create_data_dirs() {    
+
+    # then create touch the local_quiz_file
     if mkdir -p "${command_dirname}/data" && touch "$local_quiz_file"
     then
         echo -n >"$local_quiz_file"
