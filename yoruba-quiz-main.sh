@@ -96,6 +96,9 @@ function main(){
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################
 
+	# CALLS TO FUNCTIONS DECLARED IN setup.inc.sh
+	#==========================
+
     # check that the JSON data files are available and readable
     get_quiz_names
 
@@ -107,7 +110,7 @@ function main(){
         #
         get_quiz_data_file
         #pause here. see if this data is useful to user. if so, pause to allow read
-        echo && echo "Quiz data Successfully Transmitted? Press Enter to continue..."
+        echo && echo "Quiz data available. Press Enter to continue..."
         read
 
         build_quiz "$local_quiz_file"
@@ -115,7 +118,6 @@ function main(){
         run_quiz
         #
         get_user_continue_response
-        [ $? -eq 1994 ] && echo && \
         echo "yorubasystems.com" && echo && sleep 2
 	done	
 } ## end main
@@ -177,11 +179,14 @@ function get_quiz_data_file() {
     local_quiz_file="${command_dirname}/data/${remote_quiz_file_url##*/}"
     echo "local_quiz_file: "; echo "$local_quiz_file"
 
-    # if local_quiz_file already exists, then no need to fetch it down again.
-    if [ -f "$local_quiz_file" ] && [ -r "$local_quiz_file" ]
+    # if local_quiz_file already exists, and is not empty, then no need to fetch it down again.
+    local_quiz_file_line_count=$(wc -l "$local_quiz_file" 2>/dev/null | sed 's/[^0-9]//g')
+    if [ -f "$local_quiz_file" ] && \
+    [ -r "$local_quiz_file" ] && \
+    [ $local_quiz_file_line_count -gt 30 ] # 30 is arbitrary minimum for a 'good file'
     then
         # ..
-        echo "Requested quiz file aleady exists locally OK."
+        echo "Requested quiz file already exists locally OK."
     else
         create_data_dirs
 
@@ -212,11 +217,8 @@ function create_data_dirs() {
 
 ##############################
 function request_quiz_data() {
-
-    #local quiz_data=    
-    quiz_data="$(cat "$remote_quiz_file_url")" 
-    #quiz_data="$(curl -s https://yoruba-quiz.s3.eu-west-2.amazonaws.com/test-quiz-data-uc-wk01.json 2>/dev/null)"
-    #quiz_data="$(curl -s https://yoruba-quiz.s3.eu-west-2.amazonaws.com/test-quiz-data-uc-wk04.json 2>/dev/null)"
+    #quiz_data="$(cat "$remote_quiz_file_url")" 
+    quiz_data="$(curl -s "$remote_quiz_file_url" 2>/dev/null)"
 
     # Data transfer successful?
     [ $? -ne 0 ] && msg="cURL Failed. Exiting..." && \
@@ -432,8 +434,6 @@ function get_user_continue_response() {
 
     case $more_quizzing_response in
     	[yY])	echo && echo "Launching quizzes now..." && echo && sleep 2
-       	            #continue
-                    response=1994
     				;;
     	[nN])	echo
     				echo "Ok, see you next time!" && sleep 1
@@ -445,8 +445,6 @@ function get_user_continue_response() {
     				exit 0
     				;;
     esac
-
-    return "$response"
 }
 
 ##############################
