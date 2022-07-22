@@ -25,9 +25,9 @@ function get_user_quiz_choice() {
             [ "$user_quiz_choice_num" -le ${#dev_quiz_urls[@]} ]
         then
             quiz_num_selected="true"
-            echo "Quiz Selected OK."
+            echo && echo "Quiz Selected OK."
         else
-            echo "No Quiz Selected. Try Again..."
+            echo && echo "No Quiz Selected. Try Again..."
             continue
         fi    
     done
@@ -39,12 +39,12 @@ function get_quiz_data_file() {
     # assign  a value to remote_quiz_file_url
     # using user_quiz_choice_num on ${dev_quiz_urls[@]})
     remote_quiz_file_url="${dev_quiz_urls[${user_quiz_choice_num}-1]}"
-    echo "remote_quiz_file_url: "; echo "$remote_quiz_file_url"
+    echo && echo "remote_quiz_file_url: "; echo "$remote_quiz_file_url"
 
     # assign value to local_quiz_file
     # derived from the remote_quiz_file_url
     local_quiz_file="${command_dirname}/data/${remote_quiz_file_url##*/}"
-    echo "local_quiz_file: "; echo "$local_quiz_file"
+    echo && echo "local_quiz_file: "; echo "$local_quiz_file"
 
     # if local_quiz_file already exists, and is not empty, then no need to fetch it down again.
     local_quiz_file_line_count=$(wc -l "$local_quiz_file" 2>/dev/null | sed 's/[^0-9]//g')
@@ -53,7 +53,7 @@ function get_quiz_data_file() {
     [ $local_quiz_file_line_count -gt 30 ] # 30 is arbitrary minimum for a 'good file'
     then
         # ..
-        echo "Requested quiz file already exists locally OK."
+        echo && echo "Requested quiz file already exists locally OK."
     else
         create_data_dirs
 
@@ -62,7 +62,7 @@ function get_quiz_data_file() {
         # once a new local quiz file is written, make if ro \
         # so that it can be used again in future, unchanged
         write_decoded_quiz_data && chmod 440 "$local_quiz_file" && \
-        echo "Local quiz data file created OK" || \
+        echo && echo "Local quiz data file created OK" || \
         msg="Could not write local JSON quiz file. Exiting now..." || \
         lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
     fi    
@@ -90,7 +90,7 @@ function request_quiz_data() {
     # Data transfer successful?
     [ $? -ne 0 ] && msg="cURL Failed. Exiting..." && \
     lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg" || \
-    echo "cURL Client Succeeded."
+    echo && echo "cURL Client Succeeded."
 
     # JSON-like data received?
     if [ -n "$quiz_data" ] && echo $quiz_data | grep '{' >/dev/null 2>&1 
