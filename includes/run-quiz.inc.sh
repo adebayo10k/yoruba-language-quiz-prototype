@@ -3,7 +3,9 @@
 # iterate over num_range_arr numbers array to select questions in the global current quiz
 function run_quiz()
 {
-    clear # clear console before showing new quiz information
+    local num_of_responses_to_display
+    num_of_responses_to_display=1
+    #clear # clear console before showing new quiz information
 
     # display:
     # quiz name (unique)

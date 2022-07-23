@@ -65,15 +65,10 @@ function main(){
     local_quiz_file=
     quiz_data=
 
-	num_of_responses_to_display=1
 	quiz_length=
-	quiz_type=
 	quiz_play_sequence_default_string=
-	declare -a num_range_arr=()
-    quiz_week_choice=
- 
-	declare -a current_english_phrases_list=()
-	declare -a current_yoruba_phrases_list=()
+	declare -a num_range_arr=() 
+	declare -a current_english_phrases_list=()	
 	declare -A current_yoruba_translations
 	
 	##############################

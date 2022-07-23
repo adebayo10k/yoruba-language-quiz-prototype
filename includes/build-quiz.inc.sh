@@ -6,6 +6,8 @@
 function build_quiz() 
 {
 	local path_to_quiz_data="$1"
+    local current_yoruba_phrases_list
+    declare -a current_yoruba_phrases_list=()
 
 	# NOTES ON THE jq PROGRAM:
   #==================  
