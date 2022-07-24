@@ -65,9 +65,11 @@ function main(){
     local_quiz_file=
     quiz_data=
 
+    sed_script="${command_dirname}/sed-script.txt"
+
 	quiz_length=
 	quiz_play_sequence_default_string=
-	declare -a num_range_arr=() 
+	declare -a num_range_arr=()
 	declare -a current_english_phrases_list=()	
 	declare -A current_yoruba_translations
 	
