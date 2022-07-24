@@ -39,12 +39,10 @@ function get_quiz_data_file() {
     # assign  a value to remote_quiz_file_url
     # using user_quiz_choice_num on ${dev_quiz_urls[@]})
     remote_quiz_file_url="${dev_quiz_urls[${user_quiz_choice_num}-1]}"
-    echo && echo "remote_quiz_file_url: "; echo "$remote_quiz_file_url"
 
     # assign value to local_quiz_file
     # derived from the remote_quiz_file_url
     local_quiz_file="${command_dirname}/data/${remote_quiz_file_url##*/}"
-    echo && echo "local_quiz_file: "; echo "$local_quiz_file"
 
     # if local_quiz_file already exists, and is not empty, then no need to fetch it down again.
     local_quiz_file_line_count=$(wc -l "$local_quiz_file" 2>/dev/null | sed 's/[^0-9]//g')
@@ -59,7 +57,7 @@ function get_quiz_data_file() {
 
         request_quiz_data
            
-        # once a new local quiz file is written, make if ro \
+        # once a new local quiz file is written, make it ro \
         # so that it can be used again in future, unchanged
         write_decoded_quiz_data && chmod 440 "$local_quiz_file" && \
         echo && echo "Local quiz data file created OK" || \
@@ -84,7 +82,6 @@ function create_data_dirs() {
 
 ##############################
 function request_quiz_data() {
-    #quiz_data="$(cat "$remote_quiz_file_url")" 
     quiz_data="$(curl -s "$remote_quiz_file_url" 2>/dev/null)"
 
     # Data transfer successful?
