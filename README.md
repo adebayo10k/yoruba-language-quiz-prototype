@@ -10,6 +10,8 @@ This program has so far been tested only on 64-bit Ubuntu (20.04) Linux and with
 ## Files
 - yoruba-quiz-main.sh - the main script file.
 
+- includes/helper.inc.sh - functions to assist user with correct program use.
+
 - includes/build-quiz.inc.sh - included functions in which JSON data gets parsed through jq filters.
 
 - includes/dev-quiz-data.inc.sh - included file containing URLs of transport-safe, unicode encoded, development only data files.

@@ -7,8 +7,6 @@
 #: Description	: Uses an AWS S3 bucket as quiz data source.
 #: Description	: Prototype.
 
-## THIS STUFF IS HAPPENING BEFORE MAIN FUNCTION CALL:
-
 command_fullpath="$(readlink -f $0)" 
 command_basename="$(basename $command_fullpath)"
 command_dirname="$(dirname $command_fullpath)"
@@ -27,6 +25,8 @@ else
 	exit 1
 fi
 
+### Library functions have now been read-in ###
+
 # verify existence of included dependencies
 if [ -d "${command_dirname}/includes" ] && \
 [ -n "$(ls ${command_dirname}/includes)" ]
@@ -36,35 +36,23 @@ then
 		source "$file"
 	done
 else
-	# return a non-zero exit code with native exit
-	echo "Required file not found. Returning non-zero exit code. Exiting now..."
-	exit 1
+	msg="Required file not found. Returning non-zero exit code. Exiting now..."
+	lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
 fi
 
-## THAT STUFF JUST HAPPENED (EXECUTED) BEFORE MAIN FUNCTION CALL!
+### Included file functions have now been read-in ###
+
+# CALLS TO FUNCTIONS DECLARED IN helper.inc.sh
+#==========================
+check_all_program_conditions || exit 1
+display_program_headers
 
 function main(){
-	##############################
-	# GLOBAL VARIABLE DECLARATIONS:
-	##############################
-	program_title="yoruba quiz prototype"
-	original_author="damola adebayo"
-	program_dependencies=("vi" "jq" "shuf" "seq" "curl")
-
-	declare -i max_expected_no_of_program_parameters=0
-	declare -i min_expected_no_of_program_parameters=0
-	declare -ir actual_no_of_program_parameters=$#
-	all_the_parameters_string="$@"
-
-
     user_quiz_choice_num=
-
     remote_quiz_file_url=
     local_quiz_file=
     quiz_data=
-
     sed_script="${command_dirname}/sed-script.txt"
-
 	quiz_length=
 	quiz_play_sequence_default_string=
 	declare -a num_range_arr=()
@@ -73,18 +61,6 @@ function main(){
 	
 	##############################
 	# FUNCTION CALLS:
-	##############################
-
-	## Display a program header
-	lib10k_display_program_header "$program_title" "$original_author"
-	## check program dependencies and requirements
-	lib10k_check_program_requirements "${program_dependencies[@]}"
-	# check the number of parameters to this program
-	lib10k_check_no_of_program_args
-
-
-	##############################
-	# PROGRAM-SPECIFIC FUNCTION CALLS:	
 	##############################
 
     # check that we have a reference to at least one JSON data file.
@@ -121,9 +97,10 @@ function main(){
 
 function check_for_data_urls() {
     # 
-    [ ${#dev_quiz_urls[@]} -gt 0 ] || \
-    msg="Quiz data not available. Nothing to do. Exiting now..." || \
-    lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
+    if [ ! ${#dev_quiz_urls[@]} -gt 0 ]; then
+		msg="Quiz data not available. Nothing to do. Exiting now..."
+		lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
+	fi
 }
 
 ##############################
