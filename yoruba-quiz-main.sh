@@ -56,8 +56,6 @@ function main(){
 	declare -ir actual_no_of_program_parameters=$#
 	all_the_parameters_string="$@"
 
-	declare -a authorised_host_list=()
-	actual_host=`hostname`
 
     user_quiz_choice_num=
 
@@ -76,18 +74,14 @@ function main(){
 	##############################
 	# FUNCTION CALLS:
 	##############################
-	if [ ! $USER = 'root' ]
-	then
-		## Display a program header
-		lib10k_display_program_header "$program_title" "$original_author"
-		## check program dependencies and requirements
-		lib10k_check_program_requirements "${program_dependencies[@]}"
-	fi
 
+	## Display a program header
+	lib10k_display_program_header "$program_title" "$original_author"
+	## check program dependencies and requirements
+	lib10k_check_program_requirements "${program_dependencies[@]}"
 	# check the number of parameters to this program
 	lib10k_check_no_of_program_args
-	# controls where this program can be run, to avoid unforseen behaviour
-	lib10k_entry_test
+
 
 	##############################
 	# PROGRAM-SPECIFIC FUNCTION CALLS:	
@@ -101,7 +95,7 @@ function main(){
 	do
         # CALLS TO FUNCTIONS DECLARED IN get-quiz-data.inc.sh
 	    #==========================
-        get_user_quiz_choice
+        get_user_quiz_choice1 || exit 1
         get_quiz_data_file
         #pause here. see if this data is useful to user. if so, pause to allow read
         echo && echo "Quiz data available. Press Enter to continue..."

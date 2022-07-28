@@ -1,36 +1,67 @@
 #!/bin/bash
 
 ##############################
-function get_user_quiz_choice() {
+#	function get_user_quiz_choice() {
+#	
+#	    local quiz_num_selected="false"
+#	    echo && \
+#	    echo -e "\033[33mEnter the NUMBER (eg. 2) of the quiz you want to try...\033[0m"
+#	
+#	    while [[ $quiz_num_selected =~ 'false' ]]
+#	    do
+#	        bn_count=0
+#	        # list quiz files from the dev_quiz_urls array
+#	        for url in "${dev_quiz_urls[@]}"
+#	        do
+#	            bn_count=$((bn_count + 1))
+#	            echo "$bn_count : ${url##*/}"
+#	        done
+#	
+#	        read user_quiz_choice_num
+#	
+#	        # NOTE: discovered that regex only need be single quoted when assigned to variable.
+#	        if [[ "$user_quiz_choice_num" =~ ^[0-9]+$ ]] && \
+#	            [ "$user_quiz_choice_num" -ge 1 ] && \
+#	            [ "$user_quiz_choice_num" -le ${#dev_quiz_urls[@]} ]
+#	        then
+#	            quiz_num_selected="true"
+#	            echo && echo "Quiz Selected OK."
+#	        else
+#	            echo && echo "No Quiz Selected. Try Again..."
+#	            continue
+#	        fi    
+#	    done
+#	}
 
-    local quiz_num_selected="false"
-    echo && \
-    echo -e "\033[33mEnter the NUMBER (eg. 2) of the quiz you want to try...\033[0m"
-
-    while [[ $quiz_num_selected =~ 'false' ]]
-    do
-        bn_count=0
-        # list quiz files from the dev_quiz_urls array
-        for url in "${dev_quiz_urls[@]}"
-        do
-            bn_count=$((bn_count + 1))
-            echo "$bn_count : ${url##*/}"
-        done
-
-        read user_quiz_choice_num
-    
-        # NOTE: discovered that regex only need be single quoted when assigned to variable.
-        if [[ "$user_quiz_choice_num" =~ ^[0-9]+$ ]] && \
-            [ "$user_quiz_choice_num" -ge 1 ] && \
-            [ "$user_quiz_choice_num" -le ${#dev_quiz_urls[@]} ]
-        then
-            quiz_num_selected="true"
-            echo && echo "Quiz Selected OK."
-        else
-            echo && echo "No Quiz Selected. Try Again..."
-            continue
-        fi    
-    done
+function get_user_quiz_choice1() {
+	# make an array of url basenames
+	for url in ${dev_quiz_urls[@]}
+	do
+		dev_quiz_url_bns+=( "${url##*/}" )
+	done
+	#
+	echo && PS3="Enter the number of the quiz you want to try : "
+	select bn in ${dev_quiz_url_bns[@]} 'None'
+	do
+		if [[ ! $REPLY =~ ^[0-9]+$ ]] 
+		then
+			echo && echo "No Quiz Selected. Integer [1 - $(( ${#dev_quiz_url_bns[@]} + 1 ))] Required. Try Again." && echo
+			continue
+		elif [ ${REPLY} -le ${#dev_quiz_url_bns[@]} ] && [ ${REPLY} -ge 1 ]
+		then		
+			echo "You Selected : ${bn}"
+			echo "...which was choice number: ${REPLY}"
+			user_quiz_choice_num="${REPLY}"
+			echo && echo "Quiz Selected OK."
+			break;
+		elif [ ${REPLY} -eq $(( ${#dev_quiz_url_bns[@]} + 1 )) ]
+		then
+			echo "You selected \"None\". O dabọ!" && echo && exit 0 # Exit Program
+		else
+			echo && echo "Invalid Selection. Integer [1 - $(( ${#dev_quiz_url_bns[@]} + 1 ))] Required. Try Again." && echo
+			continue
+		fi
+	done
 }
 
 ##############################
