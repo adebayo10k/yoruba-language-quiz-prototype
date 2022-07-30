@@ -47,6 +47,8 @@ fi
 check_all_program_conditions || exit 1
 display_program_headers
 
+##############################
+
 function main(){
     user_quiz_choice_num=
     remote_quiz_file_url=
@@ -58,6 +60,7 @@ function main(){
 	declare -a num_range_arr=()
 	declare -a current_english_phrases_list=()	
 	declare -A current_yoruba_translations
+	hr='#================================#'
 	
 	##############################
 	# FUNCTION CALLS:
@@ -71,23 +74,21 @@ function main(){
 	do
         # CALLS TO FUNCTIONS DECLARED IN get-quiz-data.inc.sh
 	    #==========================
-        get_user_quiz_choice1 || exit 1
+        get_user_quiz_choice || exit 1
         get_quiz_data_file
-        #pause here. see if this data is useful to user. if so, pause to allow read
-        echo && echo "Quiz data available. Press Enter to continue..."
-        read
-
+        
         # CALLS TO FUNCTIONS DECLARED IN build-quiz.inc.sh
 	    #==========================
         build_quiz "$local_quiz_file"
 
         # CALLS TO FUNCTIONS DECLARED IN run-quiz.inc.sh
 	    #==========================
-        run_quiz
-
-        # give user option to continue playing or end program
-        get_user_continue_response
-        echo "yorubasystems.com" && echo && sleep 2
+		display_quiz_info
+		display_quiz_instructions
+		setup_quiz_sequence
+		play_quiz_question
+		finish_quiz
+        
 	done	
 } ## end main
 
@@ -95,36 +96,7 @@ function main(){
 ####  FUNCTION DECLARATIONS  
 ##############################
 
-function check_for_data_urls() {
-    # 
-    if [ ! ${#dev_quiz_urls[@]} -gt 0 ]; then
-		msg="Quiz data not available. Nothing to do. Exiting now..."
-		lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
-	fi
-}
 
-##############################
-function get_user_continue_response() {
 
-    echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
-    echo "Press ENTER to continue..." && read # user acknowledges info
-    echo && echo -e "\033[33m	RUN ANOTHER QUIZ? [Y/n]\033[0m" && sleep 1 && echo
-    read more_quizzing_response
 
-    case $more_quizzing_response in
-    	[yY])	echo && echo "Launching quizzes now..." && echo && sleep 2
-    				;;
-    	[nN])	echo
-    				echo "Ok, see you next time!" && sleep 1
-    				echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
-    				exit 0
-    				;;			
-    	*) 	echo " Needed a Y or N...Quitting" && echo && sleep 1
-    				echo -e "\033[33m	END OF PROGRAM. GOODBYE!\033[0m" && sleep 1 && echo
-    				exit 0
-    				;;
-    esac
-}
-
-##############################
 main "$@"; exit

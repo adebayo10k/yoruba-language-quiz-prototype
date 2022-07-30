@@ -1,80 +1,62 @@
 #!/bin/bash
+# functions responsible for getting the source data for quizzes
 
-##############################
-#	function get_user_quiz_choice() {
-#	
-#	    local quiz_num_selected="false"
-#	    echo && \
-#	    echo -e "\033[33mEnter the NUMBER (eg. 2) of the quiz you want to try...\033[0m"
-#	
-#	    while [[ $quiz_num_selected =~ 'false' ]]
-#	    do
-#	        bn_count=0
-#	        # list quiz files from the dev_quiz_urls array
-#	        for url in "${dev_quiz_urls[@]}"
-#	        do
-#	            bn_count=$((bn_count + 1))
-#	            echo "$bn_count : ${url##*/}"
-#	        done
-#	
-#	        read user_quiz_choice_num
-#	
-#	        # NOTE: discovered that regex only need be single quoted when assigned to variable.
-#	        if [[ "$user_quiz_choice_num" =~ ^[0-9]+$ ]] && \
-#	            [ "$user_quiz_choice_num" -ge 1 ] && \
-#	            [ "$user_quiz_choice_num" -le ${#dev_quiz_urls[@]} ]
-#	        then
-#	            quiz_num_selected="true"
-#	            echo && echo "Quiz Selected OK."
-#	        else
-#	            echo && echo "No Quiz Selected. Try Again..."
-#	            continue
-#	        fi    
-#	    done
-#	}
+function check_for_data_urls() {
+    # 
+    if [ ! ${#dev_quiz_urls[@]} -gt 0 ]; then
+		msg="Quiz data not available. Nothing to do. Exiting now..."
+		lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
+	fi
+}
 
-function get_user_quiz_choice1() {
-	# make an array of url basenames
-	for url in ${dev_quiz_urls[@]}
-	do
-		dev_quiz_url_bns+=( "${url##*/}" )
-	done
+# 
+function get_user_quiz_choice() {
+	# make an array of url basenames. parameter expansion on an array.
+	dev_quiz_url_bns=("${dev_quiz_urls[@]##*/}")
 	#
 	echo && PS3="Enter the number of the quiz you want to try : "
 	select bn in ${dev_quiz_url_bns[@]} 'None'
 	do
+		# type error case
 		if [[ ! $REPLY =~ ^[0-9]+$ ]] 
 		then
 			echo && echo "No Quiz Selected. Integer [1 - $(( ${#dev_quiz_url_bns[@]} + 1 ))] Required. Try Again." && echo
 			continue
-		elif [ ${REPLY} -le ${#dev_quiz_url_bns[@]} ] && [ ${REPLY} -ge 1 ]
+		# out of bounds integer error case
+		elif [ $REPLY -lt 1 ] || [ $REPLY -gt $(( ${#dev_quiz_url_bns[@]} + 1 )) ]
+		then
+			echo && echo "Invalid Selection. Integer [1 - $(( ${#dev_quiz_url_bns[@]} + 1 ))] Required. Try Again." && echo
+			continue
+		# valid user response case
+		elif [ ${REPLY} -ge 1 ] && [ ${REPLY} -le ${#dev_quiz_url_bns[@]} ]
 		then		
 			echo "You Selected : ${bn}"
 			echo "...which was choice number: ${REPLY}"
 			user_quiz_choice_num="${REPLY}"
 			echo && echo "Quiz Selected OK."
-			break;
+			break
+		# valid user response case (for None)
 		elif [ ${REPLY} -eq $(( ${#dev_quiz_url_bns[@]} + 1 )) ]
 		then
 			echo "You selected \"None\". O dabọ!" && echo && exit 0 # Exit Program
+		# unexpected, failsafe case
 		else
-			echo && echo "Invalid Selection. Integer [1 - $(( ${#dev_quiz_url_bns[@]} + 1 ))] Required. Try Again." && echo
-			continue
+			msg="Unexpected branch entered!"
+			lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"  # Exit Program with error
 		fi
 	done
 }
 
 ##############################
+#
 function get_quiz_data_file() {
-
-    # assign  a value to remote_quiz_file_url
+	remote_get='false'
+    # assign  a value to remote_quiz_file_url by
     # using user_quiz_choice_num on ${dev_quiz_urls[@]})
     remote_quiz_file_url="${dev_quiz_urls[${user_quiz_choice_num}-1]}"
-
     # assign value to local_quiz_file
     # derived from the remote_quiz_file_url
     local_quiz_file="${command_dirname}/data/${remote_quiz_file_url##*/}"
-
     # if local_quiz_file already exists, and is not empty, then no need to fetch it down again.
     local_quiz_file_line_count=$(wc -l "$local_quiz_file" 2>/dev/null | sed 's/[^0-9]//g')
     if [ -f "$local_quiz_file" ] && \
@@ -82,24 +64,74 @@ function get_quiz_data_file() {
     [ $local_quiz_file_line_count -gt 30 ] # 30 is arbitrary minimum for a 'good file'
     then
         # ..
-        echo && echo "Requested quiz file already exists locally OK."
+        echo && echo "Good News! Requested quiz file already exists locally."
     else
-        create_data_dirs
+		echo && echo "The requested quiz data file does not exist locally." 
+		echo "The program needs to download it from its' remote storage location."
+		echo "It will then create a directory called 'data', in the same directory from which this program is being run, where it can store the quiz data file for future use."
 
-        request_quiz_data
-           
+		# give user option to continue playing, change quit or end program
+		question_string='What next? Continue to Download and Store the quiz data file? Choose an option'
+		responses_string='Yes, Download and Store the quiz data|No, Quit the Program'
+		get_user_response "$question_string" "$responses_string"
+		user_response_code="$?"
+		# affirmative case
+		if [ "$user_response_code" -eq 1 ]; then
+			echo && echo "Downloading data file now..." && sleep 2
+			echo
+		# negative case 
+		elif [ "$user_response_code" -eq 2 ]; then
+			echo -e	"	Ok, see you next time!" && echo && sleep 2
+			echo -e	"	yorubasystems.com" && echo && sleep 2
+			echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
+			echo && exit 0
+		# unexpected, failsafe case	
+		else
+			msg="Unexpected user_response_code value returned. Exiting now..."
+    	    lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"		
+		fi
+		
+        create_data_dirs
+        request_quiz_data           
         # once a new local quiz file is written, make it ro \
         # so that it can be used again in future, unchanged
-        write_decoded_quiz_data && chmod 440 "$local_quiz_file" && \
-        echo && echo "Local quiz data file created OK" || \
-        msg="Could not write local JSON quiz file. Exiting now..." || \
-        lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
-    fi    
+        write_decoded_quiz_data && \
+		chmod 440 "$local_quiz_file"
+		if [ $? -eq 0 ]; then
+			echo && echo "Local quiz data file created OK"
+		else
+			msg="Could not write local JSON quiz file. Exiting now..."
+			lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"
+		fi
+    fi
+
+	echo && echo "Quiz data available." && echo
+	echo && echo "$hr"
+
+	# give user option to continue to Quiz Information page or end program
+	question_string='What next? View the Information Page for this Quiz? Choose an option'
+	responses_string='Yes, View it now|No, Quit the Program'
+	get_user_response "$question_string" "$responses_string"
+	user_response_code="$?"
+	# affirmative case
+	if [ "$user_response_code" -eq 1 ]; then
+		echo && echo "Launching Quiz Information page now..." && sleep 2
+		echo && clear
+	# negative case 
+	elif [ "$user_response_code" -eq 2 ]; then
+		echo -e	"	Ok, see you next time!" && echo && sleep 2
+		echo -e	"	yorubasystems.com" && echo && sleep 2
+		echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
+		echo && exit 0
+	# unexpected, failsafe case	
+	else
+		msg="Unexpected user_response_code value returned. Exiting now..."
+        lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"		
+	fi
 }
 
 ##############################
-function create_data_dirs() {    
-
+function create_data_dirs() {
     # then create touch the local_quiz_file
     if mkdir -p "${command_dirname}/data" && touch "$local_quiz_file"
     then
@@ -132,7 +164,6 @@ function request_quiz_data() {
 
 ##############################
 function write_decoded_quiz_data() {
-
     local tmp_line
     # write decoded quiz data to the local quiz file
     for line in "$quiz_data"
