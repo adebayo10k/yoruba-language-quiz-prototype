@@ -1,6 +1,5 @@
 # yoruba-language-quiz-prototype
 
-
 ## About this Project
 
 Just for the fun and the challenge of it. You can read the [origin story](https://adebayo10k.github.io/projects/yoruba-vocab-test.html) of this project on my GitHub Pages site, so I won't repeat it here.
@@ -9,20 +8,13 @@ This program has so far been tested only on 64-bit Ubuntu (20.04) Linux and with
 
 ## Files
 - yoruba-quiz-main.sh - the main script file.
-
 - includes/helper.inc.sh - functions to assist user with correct program use.
-
 - includes/build-quiz.inc.sh - included functions in which JSON data gets parsed through jq filters.
-
 - includes/dev-quiz-data.inc.sh - included file containing URLs of transport-safe, unicode encoded, development only data files.
-
 - includes/get-quiz-data.inc.sh - functions to download and decode JSON files for the program.
-
 - includes/run-quiz.inc.sh - functions executed during actual quiz play.
-
 - shared-functions-library/shared-bash-constants.inc.sh - common module.
 - shared-functions-library/shared-bash-functions.inc.sh - common module.
-
 - data/ - directory created in the project root for the downloaded development data.
 
 ## Purpose
@@ -55,7 +47,7 @@ This program is run as just the regular, non-privileged user. It does not requir
 
 ## Prerequisites
 
-None.
+A reasonable ability to learn new languages.
 
 ## Installation
 
@@ -76,7 +68,7 @@ ln -s path-to-cloned-repo-root-directory/yoruba-quiz-main.sh ~/${USER}/bin/yorub
 ## Configuration
 ### Terminal Font Configuration
 
-Of the 13 pre-installed font styles that can be configured in the Ubuntu Terminal, 7 are considered Yoruba-safe. That is, they're able to render those weird Yoruba character symbols without errors. You'll want to set one of these fonts.
+Of the 13 pre-installed font styles that can be configured in the Ubuntu Terminal, 7 are considered Yorùbá-safe. That is, they're able to render those weird Yorùbá character symbols without errors. You'll want to set one of these fonts.
 
 - Noto Mono *
 - Courier New *
@@ -91,7 +83,7 @@ Of the 13 pre-installed font styles that can be configured in the Ubuntu Termina
 
 ## Parameters
 
-None.
+yoruba-quiz-main.sh [help]
 
 
 ## Running the Script
@@ -111,6 +103,83 @@ cd path-to-cloned-repo-root-directory && \
 NOTE: Being only a development prototype, the program will just exit if it encounters incorrect inputs or failed connections etc.
 
 NOTE: Good idea to run in a new terminal console, as this program makes gratuitous use of the `clear` command.
+
+
+### Quiz Information Output
+
+1. The program gets the player quiz selection
+2. Check for quiz data file locally, if it's already available, otherwise
+3. Outputs everything it knows about that quiz.
+
+```
+Hello,
+
+1) test-quiz-data-uc-wk01.json
+2) test-quiz-data-uc-wk04.json
+3) None
+Enter the number of the quiz you want to try : 2
+You Selected : test-quiz-data-uc-wk04.json
+...which was choice number: 2
+
+Quiz Selected OK.
+
+Good News! Requested quiz file already exists locally.
+
+Quiz data available.
+
+#================================#
+
+1) Yes, View it now
+2) No, Quit the Program
+What next? View the Information Page for this Quiz? Choose an option : 
+
+```
+
+
+```
+quiz theme (or name):
+numbers
+
+21 questions
+
+quiz questions sequence (ordered or shuffled):
+shuffled
+
+quiz_english_phrases_string:
+zero | one | two | three | four | five | six | seven | eight | nine | ten | eleven | twelve | thirteen | fourteen | fifteen | sixteen | seventeen | eighteen | nineteen | twenty
+
+quiz_yoruba_phrases_string:
+òdo | oókan | eéjì | ẹẹ́ta | ẹẹ́rin | aárùnún | ẹẹ́fà | eéje | ẹẹ́jọ | ẹẹ́sànán | ẹẹ́wàá | oókànlá | eéjìlá | ẹẹ́tàlá | ẹẹ́rìnlá | aárùnúndínlógún | ẹẹ́rìndínlógún | ẹẹ́tàdínlógún | eéjìdínlógún | oókàndínlógún | ogún
+
+#================================#
+
+1) View the Quiz Instructions
+2) Quit the Program
+What next? Choose an option : 
+
+```
+
+### Quiz Questions Output
+The program goes though the following sequence:
+1. Clears screen of the previous information output.
+2. Displays a word, with instructions for the player.
+3. Repeats previous 2 steps until the end on the quiz.
+
+```
+		fifteen
+
+First Type your answer (Optional)
+...then Press ENTER to see translation...
+aarunundinlogun
+		aárùnúndínlógún
+
+1) Go to Next Question
+2) Leave this Quiz
+3) Quit the Program
+What next? Choose an option : 
+
+```
+
 ## Logging
 
 None.
