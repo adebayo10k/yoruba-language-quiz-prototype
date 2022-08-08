@@ -5,10 +5,8 @@
 ##############################
 # GLOBAL VARIABLE DECLARATIONS:
 ##############################
-declare -i max_expected_no_of_program_parameters=1
-declare -i min_expected_no_of_program_parameters=0
-declare -ir actual_no_of_program_parameters=$#
-all_the_parameters_string="$@"
+#all_the_parameters_string="$@"
+number_of_parameters=$#
 run_mode=${1:-''}
 
 #########################
@@ -17,17 +15,17 @@ run_mode=${1:-''}
 #
 function check_all_program_conditions() {
 	local program_dependencies=("vi" "jq" "shuf" "seq" "curl")
-	lib10k_check_no_of_program_args
-	# validate program parameters
 	validate_program_args
 	[ $? -eq 0 ] || usage
-	# check program dependencies
-	lib10k_check_program_requirements "${program_dependencies[@]}"	
+	lib10k_check_program_dependencies "${program_dependencies[@]}"	
 }
 
 # 
 function validate_program_args() {
+    [ "$number_of_parameters" -ne 0 ] && return 1
 	[ -z "$run_mode" ] && return 0
+    [ -n "$run_mode" ] && [[ "$run_mode" =~ ^[[:blank:]]+$ ]] && return 1
+    [ -n "$run_mode" ] && [[ ! $run_mode =~ ^[A-Za-z0-9\.\/_\-]+$ ]] && return 1
 	[ -n "$run_mode" ] && [ $run_mode = 'help' ] && return 1
 	[ -n "$run_mode" ] && return 1 # unrecognised parameter passed in
 }
