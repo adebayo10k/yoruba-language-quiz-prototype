@@ -2,7 +2,7 @@
 # functions responsible for getting the source data for quizzes
 
 function check_for_data_urls() {
-    # 
+    local dev_quiz_urls=( "$@" )
     if [ ! ${#dev_quiz_urls[@]} -gt 0 ]; then
 		msg="Quiz data not available. Nothing to do. Exiting now..."
 		lib10k_exit_with_error "$E_REQUIRED_FILE_NOT_FOUND" "$msg"
@@ -11,6 +11,7 @@ function check_for_data_urls() {
 
 # 
 function get_user_quiz_choice() {
+    local dev_quiz_urls=( "$@" )
 	# make an array of url basenames. parameter expansion on an array.
 	dev_quiz_url_bns=("${dev_quiz_urls[@]##*/}")
 	#
@@ -51,6 +52,9 @@ function get_user_quiz_choice() {
 ##############################
 #
 function get_quiz_data_file() {
+    local user_quiz_choice_num="$1"
+    shift
+    local dev_quiz_urls=( "$@" )
 	remote_get='false'
     # assign  a value to remote_quiz_file_url by
     # using user_quiz_choice_num on ${dev_quiz_urls[@]})
@@ -65,7 +69,7 @@ function get_quiz_data_file() {
     [ $local_quiz_file_line_count -gt 30 ] # 30 is arbitrary minimum for a 'good file'
     then
         # ..
-        echo && echo "Good News! Requested quiz file already exists locally."
+        echo && echo -e "Good News! Requested quiz file already exists locally."
     else
 		echo && echo "The requested quiz data file does not exist locally." 
 		echo "The program needs to download it from its' remote storage location."
@@ -92,11 +96,11 @@ function get_quiz_data_file() {
     	    lib10k_exit_with_error "$E_UNEXPECTED_BRANCH_ENTERED" "$msg"		
 		fi
 		
-        create_data_dirs
-        request_quiz_data           
+        create_data_dirs "$local_quiz_file"
+        request_quiz_data "$remote_quiz_file_url"   
         # once a new local quiz file is written, make it ro \
         # so that it can be used again in future, unchanged
-        write_decoded_quiz_data && \
+        write_decoded_quiz_data "$quiz_data"  && \
 		chmod 440 "$local_quiz_file"
 		if [ $? -eq 0 ]; then
 			echo && echo "Local quiz data file created OK"
@@ -133,6 +137,7 @@ function get_quiz_data_file() {
 
 ##############################
 function create_data_dirs() {
+    local local_quiz_file="$1"
     # then create touch the local_quiz_file
     if mkdir -p "${command_dirname}/data" && touch "$local_quiz_file"
     then
@@ -146,6 +151,7 @@ function create_data_dirs() {
 
 ##############################
 function request_quiz_data() {
+    local remote_quiz_file_url="$1"
     quiz_data="$(curl -s "$remote_quiz_file_url" 2>/dev/null)"
 
     # Data transfer successful?
@@ -165,6 +171,7 @@ function request_quiz_data() {
 
 ##############################
 function write_decoded_quiz_data() {
+    local quiz_data="$1"
     local tmp_line
     # write decoded quiz data to the local quiz file
     for line in "$quiz_data"

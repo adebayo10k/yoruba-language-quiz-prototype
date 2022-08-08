@@ -67,15 +67,15 @@ function main(){
 	##############################
 
     # check that we have a reference to at least one JSON data file.
-    check_for_data_urls
+    check_for_data_urls "${dev_quiz_urls[@]}"
 
 	# Keep running quizzes until user says stop.
 	while true
 	do
         # CALLS TO FUNCTIONS DECLARED IN get-quiz-data.inc.sh
 	    #==========================
-        get_user_quiz_choice || exit 1
-        get_quiz_data_file
+        get_user_quiz_choice "${dev_quiz_urls[@]}" || exit 1
+        get_quiz_data_file "$user_quiz_choice_num" "${dev_quiz_urls[@]}"
         
         # CALLS TO FUNCTIONS DECLARED IN build-quiz.inc.sh
 	    #==========================
