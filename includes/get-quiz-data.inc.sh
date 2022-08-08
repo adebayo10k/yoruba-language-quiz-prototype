@@ -14,7 +14,8 @@ function get_user_quiz_choice() {
 	# make an array of url basenames. parameter expansion on an array.
 	dev_quiz_url_bns=("${dev_quiz_urls[@]##*/}")
 	#
-	echo && PS3="Enter the number of the quiz you want to try : "
+    PS3="> "
+    echo "Enter the number of the quiz you want to try : " && echo
 	select bn in ${dev_quiz_url_bns[@]} 'None'
 	do
 		# type error case

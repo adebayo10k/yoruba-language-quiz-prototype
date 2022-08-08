@@ -245,7 +245,7 @@ function serve_vocabulary_question() {
 	user_response_code="$?"
 	# next question case
 	if [ "$user_response_code" -eq 1 ]; then
-		echo && echo "OK, Continuing to Next Question..." && sleep 2 
+		echo && echo "OK, Continuing to Next Question..." && sleep 1 
 		echo && clear
 	# leave this quiz case
 	elif [ "$user_response_code" -eq 2 ]; then

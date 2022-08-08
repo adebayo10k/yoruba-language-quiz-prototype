@@ -25,7 +25,8 @@ function get_user_response() {
 	# 
 	echo && echo # space after last question
 	user_response_num=''
-	PS3="$question_string : "
+    PS3="> "
+    echo "$question_string : " && echo
 	select response in ${response_list[@]}
 	do
 		if [[ ! $REPLY =~ ^[0-9]{1}$ ]]
