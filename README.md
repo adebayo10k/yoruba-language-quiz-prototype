@@ -114,10 +114,12 @@ NOTE: Good idea to run in a new terminal console, as this program makes gratuito
 ```
 Hello,
 
+Enter the number of the quiz you want to try :
+
 1) test-quiz-data-uc-wk01.json
 2) test-quiz-data-uc-wk04.json
 3) None
-Enter the number of the quiz you want to try : 2
+> 2
 You Selected : test-quiz-data-uc-wk04.json
 ...which was choice number: 2
 
@@ -129,9 +131,11 @@ Quiz data available.
 
 #================================#
 
+What next? View the Information Page for this Quiz? Choose an option : 
+
 1) Yes, View it now
 2) No, Quit the Program
-What next? View the Information Page for this Quiz? Choose an option : 
+> 1
 
 ```
 
@@ -153,9 +157,11 @@ quiz_yoruba_phrases_string:
 
 #================================#
 
+What next? Choose an option : 
+
 1) View the Quiz Instructions
 2) Quit the Program
-What next? Choose an option : 
+> 1
 
 ```
 
@@ -173,10 +179,12 @@ First Type your answer (Optional)
 aarunundinlogun
 		aárùnúndínlógún
 
+What next? Choose an option : 
+
 1) Go to Next Question
 2) Leave this Quiz
 3) Quit the Program
-What next? Choose an option : 
+> 1
 
 ```
 
