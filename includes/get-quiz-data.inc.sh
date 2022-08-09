@@ -88,7 +88,7 @@ function get_quiz_data_file() {
 		elif [ "$user_response_code" -eq 2 ]; then
 			echo -e	"	Ok, see you next time!" && echo && sleep 2
 			echo -e	"	yorubasystems.com" && echo && sleep 2
-			echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
+			echo -e "	${BROWN}	End of program. O dabọ!${NC}" && sleep 1
 			echo && exit 0
 		# unexpected, failsafe case	
 		else
@@ -126,7 +126,7 @@ function get_quiz_data_file() {
 	elif [ "$user_response_code" -eq 2 ]; then
 		echo -e	"	Ok, see you next time!" && echo && sleep 2
 		echo -e	"	yorubasystems.com" && echo && sleep 2
-		echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
+		echo -e "	${BROWN}	End of program. O dabọ!${NC}" && sleep 1
 		echo && exit 0
 	# unexpected, failsafe case	
 	else
@@ -157,12 +157,12 @@ function request_quiz_data() {
     # Data transfer successful?
     [ $? -ne 0 ] && msg="cURL Failed. Exiting..." && \
     lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg" || \
-    echo && echo "cURL Client Succeeded."
+    echo && echo -e  "${GREEN_BOLD}cURL Client Succeeded.${NC}"
 
     # JSON-like data received?
     if [ -n "$quiz_data" ] && echo $quiz_data | grep '{' >/dev/null 2>&1 
     then
-    	echo "JSON Downloaded OK."
+    	echo -e "${GREEN}JSON Downloaded OK.${NC}"
     else
     	msg="Could not retrieve a valid JSON file. Exiting now..."
         lib10k_exit_with_error "$E_UNKNOWN_ERROR" "$msg"

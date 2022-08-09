@@ -52,7 +52,7 @@ function display_quiz_info() {
 	elif [ "$user_response_code" -eq 2 ]; then
 		echo -e	"	Ok, see you next time!" && echo && sleep 2
 		echo -e	"	yorubasystems.com" && echo && sleep 2
-		echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
+		echo -e "	${BROWN}	End of program. O dabọ!${NC}" && sleep 1
 		echo && exit 0
 	# unexpected, failsafe case	
 	else
@@ -88,7 +88,7 @@ function display_quiz_instructions() {
 	elif [ "$user_response_code" -eq 2 ]; then
 		echo -e	"	Ok, see you next time!" && echo && sleep 2
 		echo -e	"	yorubasystems.com" && echo && sleep 2
-		echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
+		echo -e "	${BROWN}	End of program. O dabọ!${NC}" && sleep 1
 		echo && exit 0
 	# unexpected, failsafe case	
 	else
@@ -172,7 +172,7 @@ function play_quiz_questions() {
 ##############################
 #
 function finish_quiz() {
-	echo -e "\033[33m		QUIZ FINISHED!\033[0m" && sleep 1 && echo
+	echo -e "${BROWN}		QUIZ FINISHED!${NC}" && sleep 1 && echo
 
 	# give user option to continue to Quiz Play or end program
 	question_string='What next? Play a Different Quiz? Choose an option'
@@ -186,8 +186,8 @@ function finish_quiz() {
 	# quit program case
 	elif [ "$user_response_code" -eq 2 ]; then
 		echo -e	"	Ok, see you next time!" && echo && sleep 1
-		echo -e	"	yorubasystems.com" && echo && sleep 2
-		echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
+		echo -e	"	${BLUE_BOLD}yorubasystems.com${NC}" && echo && sleep 2
+		echo -e "	${BROWN}	End of program. O dabọ!${NC}" && sleep 1
 		echo && exit 0
 	# unexpected, failsafe case	
 	else
@@ -266,7 +266,7 @@ function serve_vocabulary_question() {
 	elif [ "$user_response_code" -eq 3 ]; then
 		echo -e	"	Ok, see you next time!" && echo && sleep 2
 		echo -e	"	yorubasystems.com" && echo && sleep 2
-		echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
+		echo -e "	${BROWN}	End of program. O dabọ!${NC}" && sleep 1
 		echo && exit 0
 	# unexpected, failsafe case	
 	else
