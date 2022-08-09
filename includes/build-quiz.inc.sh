@@ -2,12 +2,37 @@
 
 # this function imports the json quiz week data and then structures
 # it into the arrays needed by the main quiz execution function - run_quiz()
+##############################
+# GLOBAL VARIABLE DECLARATIONS:
+##############################
+class_review_name_string=
+class_review_audio_dir_string=
+quiz_name_string=
 
+quiz_type_string=
+quiz_category_string=
+quiz_play_sequence_default_string=
+
+quiz_instructions_string=
+#quiz_instructions_array=
+
+quiz_english_phrases_string=
+quiz_yoruba_phrases_string=
+quiz_length=
+
+declare -a current_english_phrases_array=()
+declare -A current_yoruba_translations_assoc_array
+
+#########################
+# FUNCTION DECLARATIONS:
+#########################
+
+#
 function build_quiz() 
 {
 	local path_to_quiz_data="$1"
-    local current_yoruba_phrases_list
-    declare -a current_yoruba_phrases_list=()
+    local current_yoruba_phrases_array
+    declare -a current_yoruba_phrases_array=()
     
 	# NOTES ON THE jq PROGRAM:
     #==================  
@@ -46,9 +71,7 @@ function build_quiz()
 
 	OIFS=$IFS
 	IFS='|'
-
 	quiz_name_array=( $quiz_name_string )
-
 	IFS=$OIFS
 
 	for quiz_id in "${quiz_name_array[@]}"
@@ -96,12 +119,10 @@ function create_quiz_data_structures
     sed -f "$sed_script" \
     )
 
-	OIFS=$IFS
-	IFS='|'
-
-	quiz_instructions_array=( $quiz_instructions_string )
-
-	IFS=$OIFS
+	#OIFS=$IFS
+	#IFS='|'
+	#quiz_instructions_array=( $quiz_instructions_string )
+	#IFS=$OIFS
 
 	# IMPORT QUIZ PHRASES FROM JSON AS A SINGLE STRING:
 	#===================================
@@ -130,37 +151,32 @@ function create_quiz_data_structures
 
 	# CREATE AN INDEXED ARRAY IN MEMORY FOR EACH PHRASE LIST:
 	#=======================================
-
 	OIFS=$IFS
 	IFS='|'
-
-	# assign the current_english_phrases_list array
+	# assign the current_english_phrases_array array
 	# create array after separating single-quoted phrases with a character
-	current_english_phrases_list=( $quiz_english_phrases_string )
-	#echo "${current_english_phrases_list[@]}"
+	current_english_phrases_array=( $quiz_english_phrases_string )
+	#echo "${current_english_phrases_array[@]}"
 	#echo && echo
 
-	# assign the current_yoruba_phrases_list array
-	# current_yoruba_phrases_list array is only needed to construct the associative current_yoruba_translations array
-	current_yoruba_phrases_list=( $quiz_yoruba_phrases_string )
-	#echo "${current_yoruba_phrases_list[@]}" #debug
+	# assign the current_yoruba_phrases_array array
+	# current_yoruba_phrases_array array is only needed to construct the associative current_yoruba_translations_assoc_array array
+	current_yoruba_phrases_array=( $quiz_yoruba_phrases_string )
+	#echo "${current_yoruba_phrases_array[@]}" #debug
 	#echo && echo
-
 	IFS=$OIFS
-
-	#echo "${#current_english_phrases_list[@]} english elements"
-	#echo "${#current_yoruba_phrases_list[@]} yoruba elements"
+	#echo "${#current_english_phrases_array[@]} english elements"
+	#echo "${#current_yoruba_phrases_array[@]} yoruba elements"
 
   	# NOW CONSTRUCT AN ASSOCIATIVE ARRAY FROM THE TWO INDEXED ARRAYS
  	#===============================================
-
-	for ((i=0; i<${#current_english_phrases_list[@]}; i++));
+	for ((i=0; i<${#current_english_phrases_array[@]}; i++));
 	do
-		current_yoruba_translations["${current_english_phrases_list[$i]}"]="${current_yoruba_phrases_list[$i]}"
+		current_yoruba_translations_assoc_array["${current_english_phrases_array[$i]}"]="${current_yoruba_phrases_array[$i]}"
 	done
 
 	#===============================================
 
 	# set quiz_length variable for later use
-	quiz_length="${#current_english_phrases_list[@]}"
+	quiz_length="${#current_english_phrases_array[@]}"
 }

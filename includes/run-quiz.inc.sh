@@ -1,15 +1,18 @@
 #!/bin/bash
 # functions to run to actual core quiz play features of the program
+##############################
+# GLOBAL VARIABLE DECLARATIONS:
+##############################
+declare -a num_range_arr=()
+break_this_quiz='false'
 
 # display quiz information and preview content
 function display_quiz_info() {
-
-    ## A list of information to display:
-    # quiz name (unique)
-    # quiz size (number of questions)
-    # quiz play sequence (ordered or shuffled)
-    # quiz content (a preview)
-    # quiz instructions 
+    local quiz_category_string="$1"
+    local quiz_length="$2"
+    local quiz_play_sequence_default_string="$3"
+    local quiz_english_phrases_string="$4"
+    local quiz_yoruba_phrases_string="$5"
 
 	# display quiz theme (or name)
     echo "quiz theme (or name):"
@@ -60,6 +63,10 @@ function display_quiz_info() {
 
 #
 function display_quiz_instructions() {
+    OIFS=$IFS; IFS='|'	
+    local quiz_instructions_array=( "$@" )
+	IFS=$OIFS
+   
 	echo && echo
 	# quiz instructions 
 	for line in "${quiz_instructions_array[@]}"
@@ -92,13 +99,15 @@ function display_quiz_instructions() {
 
 #
 function setup_quiz_sequence() {
+    local quiz_play_sequence_default_string="$1"
+    local quiz_length="$2"
 	# create a number sequence to 'pilot' the quiz order
 	if [[ "$quiz_play_sequence_default_string" = 'shuffled' ]]
 	then
-		make_shuffled_num_range 0 "$(( ${#current_english_phrases_list[@]} - 1 ))"
+		make_shuffled_num_range 0 "$(( $quiz_length - 1 ))"
 	elif [[ "$quiz_play_sequence_default_string" = 'ordered' ]]
 	then
-		make_ordered_num_range 0 "$(( ${#current_english_phrases_list[@]} - 1 ))"
+		make_ordered_num_range 0 "$(( $quiz_length - 1 ))"
 	else
 		## exit with error code and message
         msg="quiz play sequence not set. Exiting now..."
@@ -107,11 +116,14 @@ function setup_quiz_sequence() {
 }
 
 #
-function play_quiz_question() {
-	num_of_responses_to_display=1
+function play_quiz_questions() {
+    local num_range_arr="$1"
+    local quiz_type_string="$2"
+
+	local num_of_responses_to_display=1
 	# initialise before quiz starts
-	num_of_responses_showing=0 
-	is_first_quiz_question='true'
+	local num_of_responses_showing=0 
+	local is_first_quiz_question='true'
 	break_this_quiz='false'
 
 	for elem in ${num_range_arr[@]}
@@ -141,7 +153,8 @@ function play_quiz_question() {
 		# handle quiz question serve method based on the quiz_type_string
 		if [[ "$quiz_type_string" = 'vocabulary' ]]
 		then
-			serve_vocabulary_question "$elem"
+			serve_vocabulary_question "$elem" \
+            current_yoruba_translations_assoc_array "${current_english_phrases_array[@]}"
 		elif [[ "$quiz_type_string" = 'oral' ]]
 		then
 			serve_oral_question "$elem"
@@ -172,7 +185,7 @@ function finish_quiz() {
 		echo && clear
 	# quit program case
 	elif [ "$user_response_code" -eq 2 ]; then
-		echo -e	"	Ok, see you next time!" && echo && sleep 2
+		echo -e	"	Ok, see you next time!" && echo && sleep 1
 		echo -e	"	yorubasystems.com" && echo && sleep 2
 		echo -e "	\033[33m	End of program. O dabọ!\033[0m" && sleep 1
 		echo && exit 0
@@ -187,21 +200,21 @@ function finish_quiz() {
 ##############################
 # populates a globally accessible array with shuffled integer values
 function make_shuffled_num_range() {
-
-	lower_limit=$1 # array start index
-	upper_limit=$2 # (array size - 1) is passed in
+	lower_limit="$1" # array start index
+	upper_limit="$2" # (array size - 1) is passed in
 
 	num_range_arr=()	# reset this global variable
-	for index in "$(shuf -i "$1"-"$2")"
+	for index in "$(shuf -i "$lower_limit"-"$upper_limit")"
 	do
 		num_range_arr+=("${index}") # append an indexed array of shuffled numbers
 	done
 }
+
 ##############################
 # populates a globally accessible array with ordered, sequenced integer values
 function make_ordered_num_range() {
-	lower_limit=$1 # array start index
-	upper_limit=$2 # (array size - 1) is passed in
+	lower_limit="$1" # array start index
+	upper_limit="$2" # (array size - 1) is passed in
 
 	num_range_arr=()	# reset this global variable
 	for index in "$(seq "$lower_limit" "$upper_limit")"
@@ -209,12 +222,15 @@ function make_ordered_num_range() {
 		num_range_arr+=("${index}") # append an indexed array of sequenced numbers
 	done
 }
+
 ##############################
 # vocabulary questions wait for user to respond before displaying answer
 function serve_vocabulary_question() {
-	num="$1"
+	local question_num="$1"; shift    
+    local -n current_yoruba_translations_assoc_array_ref=$1; shift
+    local current_english_phrases_array=( "$@" )
 
-	eng_word="${current_english_phrases_list[$num]}"
+	eng_word="${current_english_phrases_array[$question_num]}"
     # -e because some english phrases include Yoruba names
 	echo -e "		$eng_word" && echo
     echo -e "First Type your answer (Optional)" 
@@ -223,7 +239,7 @@ function serve_vocabulary_question() {
 	read	# wait for user to answer
 
 	# if translation is a colon separated list, print a listing
-	translatedString="${current_yoruba_translations[$eng_word]}"
+	translatedString="${current_yoruba_translations_assoc_array_ref[$eng_word]}"
 	echo "$translatedString" | grep -q ':'
 	isList=$?
 	if [ $isList -eq 0 ]	# 0 means colon delimited translation lines/list was found
@@ -234,10 +250,6 @@ function serve_vocabulary_question() {
 	fi
 
 	echo && echo
-	#read	# wait for user to view translated string
-	## OR, NOW DISPLAY THE SELECT OPTION TO QUIT...
-
-
 	# give user option to continue playing, change quit or end program
 	question_string='What next? Choose an option'
 	responses_string='Go to Next Question|Leave this Quiz|Quit the Program'
@@ -266,9 +278,9 @@ function serve_vocabulary_question() {
 # oral questions just serve a series of phrases, with no specific answer given
 # if quiz type is oral, just iterate over as a list
 function serve_oral_question() {
-	num=$1
+	question_num="$1"
 	# if question is a colon separated lines, print a listing
-	yoruba_oral_question="${current_yoruba_oral_questions[$num]}"
+	yoruba_oral_question="${current_yoruba_oral_questions[$question_num]}"
 	echo "$yoruba_oral_question" | grep -q ':'
 	isList=$?
 	if [ $isList -eq 0 ]	# 0 means colon delimited oral question lines are present

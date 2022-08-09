@@ -83,10 +83,11 @@ function main(){
 
         # CALLS TO FUNCTIONS DECLARED IN run-quiz.inc.sh
 	    #==========================
-		display_quiz_info
-		display_quiz_instructions
-		setup_quiz_sequence
-		play_quiz_question
+		display_quiz_info "$quiz_category_string" "$quiz_length" "$quiz_play_sequence_default_string" "$quiz_english_phrases_string" "$quiz_yoruba_phrases_string"
+        
+		display_quiz_instructions "$quiz_instructions_string"
+		setup_quiz_sequence "$quiz_play_sequence_default_string" "$quiz_length"
+		play_quiz_questions "$num_range_arr" "$quiz_type_string"
 		finish_quiz
         
 	done	
@@ -95,8 +96,6 @@ function main(){
 ##############################
 ####  FUNCTION DECLARATIONS  
 ##############################
-
-
 
 
 main "$@"; exit
