@@ -21,8 +21,6 @@ This program has so far been tested only on 64-bit Ubuntu (20.04) Linux and with
 
 The main purpose of this project is to demonstrate one way to reliably transfer remote, JSON structured, Unicode encoded data to a bash shell program application, which then decodes it before use.
 
-To that end, its' value is for developers who develop applications that need to reliably encode, transmit and decode data used by applications running anywhere on the Internet. I suppose that today, that's just the standard case for every developer.
-
 Additionally, the quiz game demonstrates how an application can reliably interpret characters for which no unicode code-points currently exist.
 
 
